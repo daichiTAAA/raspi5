@@ -50,15 +50,15 @@
     ```
 
 * 下記のホームページを参考にその他の設定を行う
-  https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user
-  - sudoコマンド無しでdockerコマンドを実行できるようにする
-    ```bash
-    sudo groupadd docker
-    sudo usermod -aG docker $USER
-    newgrp docker
-    ```
-  - システム起動時のDocker自動起動設定を行う
-    ```bash
-    sudo systemctl enable docker.service
-    sudo systemctl enable containerd.service
-    ```
+  - https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user
+    - sudoコマンド無しでdockerコマンドを実行できるようにする
+      ```bash
+      sudo groupadd docker
+      sudo usermod -aG docker $USER
+      newgrp docker
+      ```
+    - システム起動時のDocker自動起動設定を行う
+      ```bash
+      sudo systemctl enable docker.service
+      sudo systemctl enable containerd.service
+      ```
