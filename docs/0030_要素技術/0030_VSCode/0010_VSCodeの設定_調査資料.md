@@ -20,6 +20,12 @@
 
 # 内容
 ---
+# Gitをインストールする
+  ```bash
+  sudo apt update
+  sudo apt install git
+  ```
+  
 # SSH接続時のVSCode拡張機能をインストールする
 * 下記の拡張機能をインストールする
   * Python

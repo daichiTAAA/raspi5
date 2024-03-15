@@ -22,7 +22,25 @@
 ---
 # インストール方法
 * 下記の記事を参考にDocker Engineをインストールする
-  - https://docs.docker.com/engine/install/ubuntu/
+  - Debian(Raspberry Pi OS Lite(64-bit))の場合
+    - https://docs.docker.com/engine/install/debian/
+    ```bash
+    # Add Docker's official GPG key:
+    sudo apt-get update
+    sudo apt-get install ca-certificates curl
+    sudo install -m 0755 -d /etc/apt/keyrings
+    sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+    sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+    # Add the repository to Apt sources:
+    echo \
+      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
+      $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+      sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    sudo apt-get update
+    ```
+  - Ubuntuの場合
+    - https://docs.docker.com/engine/install/ubuntu/
     ```bash
     # Add Docker's official GPG key:
     sudo apt-get update
@@ -38,7 +56,7 @@
       sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
     sudo apt-get update
     ```
-
+  - 共通の処理
     To install the latest version, run:
     ```bash
     sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin

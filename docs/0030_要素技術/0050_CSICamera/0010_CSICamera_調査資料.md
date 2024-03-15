@@ -23,8 +23,9 @@
 # 必要なライブラリのインストール
 ```bash
 sudo apt update
-sudo apt upgrade
-sudo apt install v4l-utils
+sudo apt full-upgrade -y
+sudo reboot
+ls /dev/video*
 ```
 
 # CSIカメラが認識されているかの確認方法

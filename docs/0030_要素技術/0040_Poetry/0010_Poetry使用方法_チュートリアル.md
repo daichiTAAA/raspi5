@@ -94,6 +94,7 @@ Poetryは、Pythonでコマンドラインから詩を生成するためのツ�
       - poetryをインストールします。
         ```bash
         pipx install poetry
+        pipx ensurepath
         ```
       - poetryのパスが通っていない場合は~/.bashrcに`PATH="$PATH":Poetryのbinフォルダのパス`を記載してパスを通します。
 
