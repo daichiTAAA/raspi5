@@ -35,3 +35,34 @@ Rancherは、Kubernetesクラスターの管理を簡素化するためのオー
   - 商用サポートを提供するRancher Labsがバックアップしており、エンタープライズでの利用にも適している
 
 以上のように、Rancherは、Kubernetesクラスターの管理やアプリケーションデプロイの効率化を実現するための強力なプラットフォームです。
+
+# 参考
+- [Rancher](https://www.rancher.com/)
+- [Rancher Labs](https://www.rancher.com/products/rancher-labs/)
+
+# インストール方法
+- 参考: https://ranchermanager.docs.rancher.com/getting-started/quick-start-guides/deploy-rancher-manager/helm-cli
+- k3sを動かしている以外のPCやVM、WSL2にインストールする
+- config.yamlの作成
+  ```bash
+  sudo mkdir /etc/rancher
+  sudo mkdir /etc/rancher/rke2
+  cd /etc/rancher/rke2
+  sudo nano config.yaml
+  ```
+  下記の内容をconfig.yamlに書き込む。
+  ```
+  token: {トークン}
+  tls-san:
+    - {k3sマスターノードのIPアドレス}
+  ```
+  記載例：
+  ```
+  token: mylittlepony
+  tls-san:
+    - 192.168.0.102
+  ```
+- Rancherをインストールする
+  ```bash
+  curl -sfL https://get.rancher.io | sh -
+  ```
