@@ -1,0 +1,19 @@
+version: '3'
+services:
+  rancher:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rancher
+    privileged: true
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./rancher:/etc/rancher
+      - ./var/lib/rancher:/var/lib/rancher
+      - ./var/log/rancher:/var/log/rancher
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - TZ=Asia/Tokyo
