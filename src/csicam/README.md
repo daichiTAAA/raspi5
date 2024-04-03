@@ -117,29 +117,31 @@ sudo apt-get update && sudo apt-get install -y ffmpeg libopencv-dev python3-open
 ```
 venvで仮想環境を作成する。
 ```bash
+cd ~/raspi5
 python3 -m venv stream
 source stream/bin/activate
 ```
 既に作成済みの場合はアクティベートのみ行う。
 ```bash
+cd ~/raspi5
 source stream/bin/activate
 ```
 pythonパッケージをインストールする
 ```bash
-cd src/csicam
+cd ~/raspi5/src/csicam
 pip install --no-cache-dir -r requirements.txt
 ```
 
 ## 3. MediaMTXコンテナを実行する
 ```bash
-cd src/csicam
+cd ~/raspi5/src/csicam
 docker compose up
 ```
 
 ## 4. ビデオストリーム配信を実施する
 Raspberry Pi Camera Module V3が撮影した動画を取得しMediaMTX経由でRTSP形式のビデオストリームを配信する。
 ```bash
-cd src/csicam/csicam
+cd ~/raspi5/src/csicam/csicam
 python serve_rtsp.py
 ```
     
