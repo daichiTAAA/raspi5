@@ -35,7 +35,7 @@ camera1.configure(camera_config1)
 
 size = camera_config1["main"]["size"]
 width, height = size
-fps = 15
+fps = 5
 
 # FFmpegの設定
 output_url1 = "rtsp://0.0.0.0:8554/stream1"

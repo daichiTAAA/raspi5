@@ -113,7 +113,7 @@ iface wlan0 inet static
 ## 2. 必要なパッケージのインストール
 aptパッケージをインストールする
 ```bash
-sudo apt-get update && sudo apt-get install -y ffmpeg
+sudo apt-get update && sudo apt-get install -y ffmpeg libopencv-dev python3-opencv
 ```
 venvで仮想環境を作成する。
 ```bash
@@ -127,5 +127,25 @@ source stream/bin/activate
 pythonパッケージをインストールする
 ```bash
 cd src/csicam
-pip install -r requirements.txt
+pip install --no-cache-dir -r requirements.txt
+```
+
+## 3. MediaMTXコンテナを実行する
+```bash
+cd src/csicam
+docker compose up
+```
+
+## 4. ビデオストリーム配信を実施する
+Raspberry Pi Camera Module V3が撮影した動画を取得しMediaMTX経由でRTSP形式のビデオストリームを配信する。
+```bash
+cd src/csicam/csicam
+python serve_rtsp.py
+```
+    
+## 5. 外部PCからのRTSPビデオストリームの受信
+* VLC Media Playerをインストールする。
+* 下記のURLをファイル→ネットワーク画面で、下記のURLを入力し表示する。
+```
+rtsp://{RaspberryPi Zero 2 W IP Address}:8554/stream
 ```
