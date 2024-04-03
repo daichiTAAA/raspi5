@@ -5,7 +5,7 @@ services:
     image: bluenviron/mediamtx:latest
     environment:
       - MTX_PROTOCOLS=tcp
-      - MTX_WEBRTCADDITIONALHOSTS=192.168.0.3
+      - MTX_WEBRTCADDITIONALHOSTS=`ip addr show | grep "scope global wlan0" | awk '{print $2}' | cut -d/ -f1`
     ports:
       - "8554:8554"
       - "1935:1935"
