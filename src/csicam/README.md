@@ -111,14 +111,21 @@ iface wlan0 inet static
 * Raspberry Pi OS Lite(32bit)をセットアップし、RaspberryPi Zero 2 WにSSHで接続して実行する。
 
 ## 2. 必要なパッケージのインストール
-下記のコマンドでaptパッケージとPythonパッケージをインストールする
+aptパッケージをインストールする
 ```bash
 sudo apt-get update && sudo apt-get install -y ffmpeg
 ```
-
-## 3. 仮想環境の作成
 venvで仮想環境を作成する。
 ```bash
 python3 -m venv stream
 source stream/bin/activate
+```
+既に作成済みの場合はアクティベートのみ行う。
+```bash
+source stream/bin/activate
+```
+pythonパッケージをインストールする
+```bash
+cd src/csicam
+pip install -r requirements.txt
 ```
