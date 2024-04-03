@@ -1,4 +1,15 @@
 # Raspberry Pi Camera Module V3からのビデオストリームをRTSP形式でビデオストリーム配信する方法
+&nbsp;
+
+# 共通セットアップ
+## デバイスの初期設定を行う
+* docs/0030_要素技術/0010_RaspberryPiのドキュメントを元に初期設定を行う
+
+## 必要なパッケージをインストールする
+```bash
+sudo apt update && sudo apt install -y python3-pip python3-venv
+```
+
 ## 無線LANのIPアドレスを固定する
 1. ネットワークインターフェースの設定ファイルを開きます。
    - Debianベースのシステム（Raspberry Pi OSを含む）では、`/etc/network/interfaces`ファイルを編集します。
@@ -41,7 +52,9 @@ iface wlan0 inet static
    ```
 ただし、IPアドレスを固定する際は、ネットワーク管理者と調整し、IPアドレスの重複を避けるようにしてください。
 
-## Raspberry Pi5用セットアップ方法
+&nbsp;
+
+# Raspberry Pi5用セットアップ方法
 1. Raspberry Pi OS Lite(64bit)をセットアップし、RaspberryPi5にSSHで接続して実行する。
 
 2. 下記のコマンドでaptパッケージとPythonパッケージをインストールする
@@ -53,6 +66,19 @@ iface wlan0 inet static
         python3-picamera2 \
         ffmpeg
     ```
+
+    Poetryをインストールする
+    ```bash
+    python3 -m pip install --user pipx
+    python3 -m pipx ensurepath
+    ```
+    ターミナルを立ち上げ直す。
+    ```bash
+    pipx install poetry
+    pipx ensurepath
+    ```
+    ターミナルを立ち上げ直す。
+
     ```bash
     cd src/csicam
     poetry install
@@ -78,4 +104,21 @@ iface wlan0 inet static
     rtsp://{RaspberryPi5 IP Address}:8554/stream
     ```
 
-## Raspberry Pi Zero2 W用セットアップ方法
+&nbsp;
+
+# Raspberry Pi Zero 2 W用セットアップ方法
+## 1. SSH接続
+* Raspberry Pi OS Lite(32bit)をセットアップし、RaspberryPi Zero 2 WにSSHで接続して実行する。
+
+## 2. 必要なパッケージのインストール
+下記のコマンドでaptパッケージとPythonパッケージをインストールする
+```bash
+sudo apt-get update && sudo apt-get install -y ffmpeg
+```
+
+## 3. 仮想環境の作成
+venvで仮想環境を作成する。
+```bash
+python3 -m venv stream
+source stream/bin/activate
+```
