@@ -7,7 +7,8 @@
 
 ## 必要なパッケージをインストールする
 ```bash
-sudo apt update && sudo apt install -y python3-pip python3-venv
+sudo apt update
+sudo apt install -y python3-pip python3-venv
 ```
 
 ## 無線LANのIPアドレスを固定する
@@ -141,6 +142,8 @@ docker compose up
 ## 4. ビデオストリーム配信を実施する
 Raspberry Pi Camera Module V3が撮影した動画を取得しMediaMTX経由でRTSP形式のビデオストリームを配信する。
 ```bash
+cd ~/raspi5
+source stream/bin/activate
 cd ~/raspi5/src/csicam/csicam
 python serve_rtsp.py
 ```
