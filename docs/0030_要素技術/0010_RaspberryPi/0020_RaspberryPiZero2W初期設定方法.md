@@ -22,7 +22,7 @@
 ---
 # 初期設定方法
 * RaspberryPi5の初期設定方法とほぼ同じ
-* メモリが少ないため64bitでなく、RaspberryPiOS Lite 32bitの方が良い
+* メモリが少ないため64bitでなく、RaspberryPiOS Lite 32bitの方が良い。しかし、confluent-kafkaは64bitでないと使用できない。そのため、64bit版を使用する。
 * 無線LANは2.4GHzのみ使用可能なためSSIDは5GHz用でなく、2.4GHz用を使用することに注意する
 
 &nbsp;
@@ -104,6 +104,7 @@ iface wlan0 inet static
 # Gitのインストール
 ```bash
 sudo apt update
+sudo apt upgrade
 sudo apt install git
 ```
 

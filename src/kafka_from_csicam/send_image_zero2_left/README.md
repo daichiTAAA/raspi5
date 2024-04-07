@@ -12,7 +12,9 @@
 ### 必要なパッケージのインストール
 aptパッケージをインストールする
 ```bash
-sudo apt-get update && sudo apt-get install -y librdkafka-dev build-essential
+sudo apt update
+sudo apt upgrade
+sudo apt install -y python3-pip python3-venv
 ```
 venvで仮想環境を作成する。
 ```bash
@@ -37,7 +39,7 @@ pip install --no-cache-dir -r requirements.txt
 
 ```bash
 cd ~/raspi5/src/kafka_from_csicam/send_image_zero2_left
-python send_image.py
+python produce_image.py
 ```
 
 ### 2. スクリプトは、一定間隔でカメラから画像をキャプチャし、Kafkaトピックにpublishします。
