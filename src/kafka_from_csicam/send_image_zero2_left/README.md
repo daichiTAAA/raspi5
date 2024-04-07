@@ -33,6 +33,16 @@ cd ~/raspi5/src/kafka_from_csicam/send_image_zero2_left
 pip install --no-cache-dir -r requirements.txt
 ```
 
+### CMSメモリを増やす
+/boot/config.txtファイルを編集し、以下の行を追加または修正してCMSメモリを増やす。
+```bash
+sudo nano /boot/config.txt
+```
+下記を追加する。
+```
+dtoverlay=vc4-kms-v3d,cma-320
+```
+
 ## 使用方法
 
 ### 1. スクリプトを実行します:

@@ -5,7 +5,7 @@ from confluent_kafka.schema_registry.avro import AvroDeserializer
 
 # Kafka設定
 bootstrap_servers = "192.168.0.104:9092"
-topic = "image-data-left-csicam"
+topic = "image-data-zero2-left"
 group_id = "image-consumer-group"
 
 # Schema Registry設定
