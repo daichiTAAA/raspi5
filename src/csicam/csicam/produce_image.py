@@ -87,9 +87,12 @@ with Picamera2(0) as picam2:
             }
 
             # シリアライズ
+            serialized_message = avro_serializer(message, ctx=None)
+
+            # トピックを指定してメッセージを送信
             producer.produce(
                 topic=topic,
-                value=avro_serializer(message, ctx=None),
+                value=serialized_message,
                 callback=delivery_report,
             )
 
