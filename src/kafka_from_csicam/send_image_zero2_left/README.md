@@ -12,7 +12,7 @@
 ### 必要なパッケージのインストール
 aptパッケージをインストールする
 ```bash
-sudo apt-get update && sudo apt-get install -y librdkafka-dev
+sudo apt-get update && sudo apt-get install -y librdkafka-dev build-essential
 ```
 venvで仮想環境を作成する。
 ```bash
