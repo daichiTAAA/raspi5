@@ -3,7 +3,7 @@
 # 作成記録
 ---
 * 作成日時 2024/4/3 野田大一郎
-* 更新日時
+* 更新日時 2024/4/7 野田大一郎
 &nbsp;
 # 概要
 ---
@@ -125,9 +125,9 @@ echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
   $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get update
 ```
 ```bash
+sudo apt-get updateß
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
 

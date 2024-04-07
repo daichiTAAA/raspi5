@@ -8,6 +8,7 @@
 ## 必要なパッケージをインストールする
 ```bash
 sudo apt update
+sudo apt upgrade
 sudo apt install -y python3-pip python3-venv
 ```
 
@@ -56,49 +57,54 @@ iface wlan0 inet static
 &nbsp;
 
 # Raspberry Pi5用セットアップ方法
-1. Raspberry Pi OS Lite(64bit)をセットアップし、RaspberryPi5にSSHで接続して実行する。
+## 1. Raspberry Pi OS Lite(64bit)をセットアップし、RaspberryPi5にSSHで接続して実行する。
 
-2. 下記のコマンドでaptパッケージとPythonパッケージをインストールする
-    ```bash
-    sudo apt-get update && sudo apt-get install -y \
-        libcamera-ipa \
-        libcamera0.2 \
-        python3-libcamera \
-        python3-picamera2 \
-        ffmpeg
-    ```
+## 2. 下記のコマンドでaptパッケージとPythonパッケージをインストールする
+```bash
+sudo apt-get update && sudo apt-get install -y \
+    libcamera-ipa \
+    libcamera0.2 \
+    python3-libcamera \
+    python3-picamera2 \
+    ffmpeg
+```
 
-    Poetryをインストールする
-    ```bash
-    python3 -m pip install --user pipx
-    python3 -m pipx ensurepath
-    ```
-    ターミナルを立ち上げ直す。
-    ```bash
-    pipx install poetry
-    pipx ensurepath
-    ```
-    ターミナルを立ち上げ直す。
+venvで仮想環境を作成する。
+```bash
+cd ~/raspi5
+python3 -m venv stream
+source stream/bin/activate
+```
+既に作成済みの場合はアクティベートのみ行う。
+```bash
+cd ~/raspi5
+source stream/bin/activate
+```
+pythonパッケージをインストールする
+```bash
+cd ~/raspi5/src/csicam
+pip install --no-cache-dir -r requirements.txt
+```
 
-    ```bash
-    cd src/csicam
-    poetry install
-    poetry shell
-    ```
+## 3. カメラで写真を撮影可能か確認する
+```bash
+cd src/csicam/csicam
+python get_image.py
+```
 
-3. MediaMTXコンテナを実行する
-    ```bash
-    cd src/csicam
-    docker compose up
-    ```
+## 4. MediaMTXコンテナを実行する
+```bash
+cd src/csicam
+docker compose up
+```
 
-4. RaspberryPi5がRaspberry Pi Camera Module V3が撮影した動画を取得しMediaMTX経由でRTSP形式のビデオストリームを配信する
-    ```bash
-    cd src/csicam/csicam
-    python serve_rtsp.py
-    ```
+## 5. RaspberryPi5がRaspberry Pi Camera Module V3が撮影した動画を取得しMediaMTX経由でRTSP形式のビデオストリームを配信する
+```bash
+cd src/csicam/csicam
+python serve_rtsp.py
+```
     
-5. 外部PCからのRTSPビデオストリームの受信
+## 6. 外部PCからのRTSPビデオストリームの受信
 * VLC Media Playerをインストールする。
 * 下記のURLをファイル→ネットワーク画面で、下記のURLを入力し表示する。
     ```
@@ -133,13 +139,19 @@ cd ~/raspi5/src/csicam
 pip install --no-cache-dir -r requirements.txt
 ```
 
-## 3. MediaMTXコンテナを実行する
+## 3. カメラで写真を撮影可能か確認する
 ```bash
-cd ~/raspi5/src/csicam
-docker compose up
+cd src/csicam/csicam
+python get_image.py
 ```
 
-## 4. ビデオストリーム配信を実施する
+## 4. MediaMTXコンテナを実行する
+```bash
+cd ~/raspi5/src/csicam
+sudo docker compose up
+```
+
+## 5. ビデオストリーム配信を実施する
 Raspberry Pi Camera Module V3が撮影した動画を取得しMediaMTX経由でRTSP形式のビデオストリームを配信する。
 ```bash
 cd ~/raspi5
@@ -148,7 +160,7 @@ cd ~/raspi5/src/csicam/csicam
 python serve_rtsp.py
 ```
     
-## 5. 外部PCからのRTSPビデオストリームの受信
+## 6. 外部PCからのRTSPビデオストリームの受信
 * VLC Media Playerをインストールする。
 * 下記のURLをファイル→ネットワーク画面で、下記のURLを入力し表示する。
 ```
