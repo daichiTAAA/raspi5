@@ -69,6 +69,7 @@ with Picamera2(0) as picam2:
             # 一時ファイルから画像データを読み込む
             temp_file.seek(0)
             img_bytes = temp_file.read()
+            img_size = len(img_bytes)
 
             timestamp = datetime.now().isoformat()
             ip_address = socket.gethostbyname(socket.gethostname())
@@ -78,6 +79,7 @@ with Picamera2(0) as picam2:
                 "image": img_bytes,
                 "timestamp": timestamp,
                 "ip_address": ip_address,
+                "image_size": img_size,  # 画像サイズ（バイト単位）
             }
 
             # シリアライズ
@@ -88,6 +90,5 @@ with Picamera2(0) as picam2:
             )
 
             producer.flush()
-            picam2.stop()
 
         time.sleep(1)
