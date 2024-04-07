@@ -1,0 +1,17 @@
+version: '3'
+services:
+  akhq:
+    image: tchiotludo/akhq:latest
+    hostname: akhq
+    container_name: akhq
+    ports:
+      - "8080:8080"
+    environment:
+      AKHQ_CONFIGURATION: |
+        akhq:
+          connections:
+            docker-kafka-server:
+              properties:
+                bootstrap.servers: "192.168.0.104:9092"
+              schema-registry:
+                url: "http://192.168.0.104:8081"
