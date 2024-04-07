@@ -2,10 +2,12 @@ version: '3.8'
 services:
   send_image_left_csicam:
     build: .
+    stdin_open: true
+    tty: true
     container_name: send_image_left_csicam
-    environment:
-      - UDEV=1
     volumes:
-      - /dev:/dev
+      - .:/code
+      - /run/udev/:/run/udev:ro
     devices:
-      - /dev:/dev
+      - /dev/video0:/dev/video0
+    privileged: true
