@@ -1,10 +1,10 @@
 version: '3.8'
 services:
-  send_image_left_csicam:
+  send_image_pi5:
     build: .
     stdin_open: true
     tty: true
-    container_name: send_image_left_csicam
+    container_name: send_image_pi5
     volumes:
       - .:/code
       - /run/udev/:/run/udev:ro

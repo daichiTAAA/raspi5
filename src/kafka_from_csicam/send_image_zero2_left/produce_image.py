@@ -28,7 +28,7 @@ def delivery_report(err, msg):
 
 # Kafka設定
 bootstrap_servers = "192.168.0.104:9092"
-topic = "image-data-left-csicam"
+topic = "image-data-zero2-left"
 
 # Schema Registry設定
 schema_registry_url = "http://192.168.0.104:8081"
