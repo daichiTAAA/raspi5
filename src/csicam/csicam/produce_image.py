@@ -56,29 +56,28 @@ avro_serializer = AvroSerializer(schema_registry_client, schema_str)
 producer_conf = {"bootstrap.servers": bootstrap_servers}
 producer = Producer(producer_conf)
 
-picam2a = Picamera2(0)
-picam2a.start_preview(Preview.NULL)
+with Picamera2(0) as picam2:
+    picam2.start_preview(Preview.NULL)
 
-while True:
-    img_buffer = BytesIO()
-    picam2a.capture_file(img_buffer)
-    img_bytes = img_buffer.getvalue()
+    while True:
+        img_buffer = BytesIO()
+        picam2.start_and_capture_file(img_buffer)
+        img_bytes = img_buffer.getvalue()
 
-    timestamp = datetime.now().isoformat()
-    ip_address = socket.gethostbyname(socket.gethostname())
+        timestamp = datetime.now().isoformat()
+        ip_address = socket.gethostbyname(socket.gethostname())
 
-    # メッセージ作成
-    message = {"image": img_bytes, "timestamp": timestamp, "ip_address": ip_address}
+        # メッセージ作成
+        message = {"image": img_bytes, "timestamp": timestamp, "ip_address": ip_address}
 
-    # シリアライズ
-    producer.produce(
-        topic=topic,
-        value=avro_serializer(message, schema_str),
-        callback=delivery_report,
-    )
+        # シリアライズ
+        producer.produce(
+            topic=topic,
+            value=avro_serializer(message, schema_str),
+            callback=delivery_report,
+        )
 
-    producer.flush()
+        producer.flush()
 
-    time.sleep(1)
-
-picam2a.stop()
+        picam2.stop()
+        time.sleep(1)
