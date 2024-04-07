@@ -37,3 +37,12 @@
 
 - Kafkaブローカーのアドレスとトピック名は、`produce_image.py`の`bootstrap_servers`と`topic`変数で設定できます。
 - Schema Registryのアドレスは、`produce_image.py`の`schema_registry_url`変数で設定できます。
+
+# tlsエラー時の対応方法
+* 下記のエラーが出た場合、下記のコマンドを実行する。
+  * `tls: failed to verify certificate: x509: certificate has expired or is not yet valid: current time`
+```bash
+sudo apt update
+sudo apt install ntpdate
+sudo ntpdate ntp.nict.jp
+```
