@@ -1,3 +1,4 @@
 picamera2
 confluent-kafka
 avro-python3
+requests
