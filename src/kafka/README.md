@@ -10,7 +10,7 @@
 
 1. Dockerネットワークを作成します。
     ```bash
-    docker network create kafka-net
+    sudo docker network create kafka-net
     ```
 
 2. 以下のコマンドを実行して、Kafka と Schema Registry を起動します。
