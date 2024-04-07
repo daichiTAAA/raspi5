@@ -74,34 +74,39 @@ with Picamera2(0) as picam2:
 
     while True:
         img_buffer = BytesIO()
-        picam2.capture_file(img_buffer, format="jpeg")
-        img_bytes = img_buffer.getvalue()
-        img_size = len(img_bytes)
+        # 一時ファイルを作成
+        with tempfile.NamedTemporaryFile(suffix=".jpg") as temp_file:
+            picam2.start_and_capture_file(temp_file.name)
 
-        timestamp = datetime.now().isoformat()
-        ip_address = socket.gethostbyname(socket.gethostname())
+            # 一時ファイルから画像データを読み込む
+            temp_file.seek(0)
+            img_bytes = temp_file.read()
+            img_size = len(img_bytes)
 
-        # メッセージ作成
-        message = {
-            "timestamp": timestamp,
-            "ip_address": ip_address,
-            "image_size": img_size,  # 画像サイズ（バイト単位）
-            "image": img_bytes,
-        }
+            timestamp = datetime.now().isoformat()
+            ip_address = socket.gethostbyname(socket.gethostname())
 
-        # シリアライズ
-        serialized_message = avro_serializer(
-            message, SerializationContext(topic, MessageField.VALUE)
-        )
+            # メッセージ作成
+            message = {
+                "timestamp": timestamp,
+                "ip_address": ip_address,
+                "image_size": img_size,  # 画像サイズ（バイト単位）
+                "image": img_bytes,
+            }
 
-        # トピックを指定してメッセージを送信
-        producer.produce(
-            topic=topic,
-            key=string_serializer(str(uuid4())),
-            value=serialized_message,
-            callback=delivery_report,
-        )
+            # シリアライズ
+            serialized_message = avro_serializer(
+                message, SerializationContext(topic, MessageField.VALUE)
+            )
 
-        producer.flush()
+            # トピックを指定してメッセージを送信
+            producer.produce(
+                topic=topic,
+                key=string_serializer(str(uuid4())),
+                value=serialized_message,
+                callback=delivery_report,
+            )
+
+            producer.flush()
 
         time.sleep(1)
