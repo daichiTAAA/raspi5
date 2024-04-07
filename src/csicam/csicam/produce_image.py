@@ -7,7 +7,6 @@ import tempfile
 
 sys.path.append("/usr/lib/python3/dist-packages")
 print(sys.path)
-
 from picamera2 import Picamera2, Preview
 from confluent_kafka import Producer
 from confluent_kafka.schema_registry import SchemaRegistryClient
