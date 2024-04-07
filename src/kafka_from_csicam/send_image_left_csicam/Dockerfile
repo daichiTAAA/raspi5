@@ -2,11 +2,11 @@ FROM python:3.11-slim
 
 # 必要なパッケージのインストール
 RUN apt-get update && apt-get install -y \
-    libgl1-mesa-glx \
-    libglib2.0-0 \
-    libsm6 \
-    libxext6 \
-    libxrender-dev \
+    # libgl1-mesa-glx \
+    # libglib2.0-0 \
+    # libsm6 \
+    # libxext6 \
+    # libxrender-dev \
     libcamera-ipa \
     libcamera0.2 \
     python3-libcamera \

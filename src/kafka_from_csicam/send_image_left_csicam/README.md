@@ -8,14 +8,20 @@
 
    ```
    cd src/kafka_from_csicam/send_image_left_csicam
-   docker compose build
+   sudo docker compose build
    ```
 
 2. 次のコマンドでDockerコンテナを起動します。
 
    ```
    cd src/kafka_from_csicam/send_image_left_csicam
-   docker compose up
+   sudo docker compose up
+   ```
+
+   ビルドと実行を同時にする場合は下記のコードを実行します。
+   ```
+   cd src/kafka_from_csicam/send_image_left_csicam
+   sudo docker compose up --build
    ```
 
    これにより、CSIカメラから画像が取得され、Kafkaトピック`image-data-left-csicam`に送信されます。
@@ -24,7 +30,7 @@
 
    ```
    cd src/kafka_from_csicam/send_image_left_csicam
-   docker compose down
+   sudo docker compose down
    ```
 
 # 設定
