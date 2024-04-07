@@ -3,6 +3,7 @@ import time
 import socket
 from datetime import datetime
 from io import BytesIO
+import tempfile
 
 sys.path.append("/usr/lib/python3/dist-packages")
 print(sys.path)
@@ -61,23 +62,32 @@ with Picamera2(0) as picam2:
 
     while True:
         img_buffer = BytesIO()
-        picam2.start_and_capture_file(img_buffer)
-        img_bytes = img_buffer.getvalue()
+        # 一時ファイルを作成
+        with tempfile.NamedTemporaryFile(suffix=".jpg") as temp_file:
+            picam2.start_and_capture_file(temp_file.name)
 
-        timestamp = datetime.now().isoformat()
-        ip_address = socket.gethostbyname(socket.gethostname())
+            # 一時ファイルから画像データを読み込む
+            temp_file.seek(0)
+            img_bytes = temp_file.read()
 
-        # メッセージ作成
-        message = {"image": img_bytes, "timestamp": timestamp, "ip_address": ip_address}
+            timestamp = datetime.now().isoformat()
+            ip_address = socket.gethostbyname(socket.gethostname())
 
-        # シリアライズ
-        producer.produce(
-            topic=topic,
-            value=avro_serializer(message, schema_str),
-            callback=delivery_report,
-        )
+            # メッセージ作成
+            message = {
+                "image": img_bytes,
+                "timestamp": timestamp,
+                "ip_address": ip_address,
+            }
 
-        producer.flush()
+            # シリアライズ
+            producer.produce(
+                topic=topic,
+                value=avro_serializer(message, schema_str),
+                callback=delivery_report,
+            )
 
-        picam2.stop()
+            producer.flush()
+            picam2.stop()
+
         time.sleep(1)
