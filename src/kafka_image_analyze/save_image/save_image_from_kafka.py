@@ -12,8 +12,11 @@ group_id = "image-consumer-group"
 schema_registry_url = "http://192.168.0.104:8081"
 schema_registry_client = SchemaRegistryClient({"url": schema_registry_url})
 
+# スキーマを取得
 subject_name = f"{topic}-value"
-avro_deserializer = AvroDeserializer(schema_registry_client, subject_name)
+schema = schema_registry_client.get_latest_version(subject_name).schema.schema_str
+
+avro_deserializer = AvroDeserializer(schema_registry_client, schema)
 
 consumer_conf = {
     "bootstrap.servers": bootstrap_servers,
