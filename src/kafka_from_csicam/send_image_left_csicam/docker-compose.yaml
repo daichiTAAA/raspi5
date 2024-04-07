@@ -2,6 +2,10 @@ version: '3.8'
 services:
   send_image_left_csicam:
     build: .
-    devices:
-      - /dev/vchiq:/dev/vchiq
     container_name: send_image_left_csicam
+    environment:
+      - UDEV=1
+    volumes:
+      - /dev:/dev
+    devices:
+      - /dev:/dev
