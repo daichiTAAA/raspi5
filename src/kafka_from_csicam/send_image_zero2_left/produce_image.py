@@ -70,7 +70,9 @@ producer = Producer(producer_conf)
 with Picamera2(0) as picam2:
     picam2.start_preview(Preview.NULL)
     # 画像の解像度を設定（例：幅640x、高さ480px）
-    config = picam2.create_preview_configuration(main={"size": (640, 480)})
+    config = picam2.create_preview_configuration(
+        main={"size": (640, 480)}, buffer_count=1
+    )
     picam2.configure(config)
 
     while True:
@@ -109,5 +111,9 @@ with Picamera2(0) as picam2:
             )
 
             producer.flush()
+
+            # 明示的にメモリを解放
+            del img_bytes
+            del message
 
         time.sleep(1)
