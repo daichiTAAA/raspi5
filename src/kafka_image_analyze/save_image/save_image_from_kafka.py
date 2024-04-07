@@ -13,7 +13,7 @@ schema_registry_url = "http://192.168.0.104:8081"
 schema_registry_client = SchemaRegistryClient({"url": schema_registry_url})
 
 subject_name = f"{topic}-value"
-avro_deserializer = AvroDeserializer(schema_registry_client, None, subject_name)
+avro_deserializer = AvroDeserializer(schema_registry_client, subject_name)
 
 consumer_conf = {
     "bootstrap.servers": bootstrap_servers,
