@@ -6,11 +6,11 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
-    libxrender-dev \
-    libcamera-ipa \
-    libcamera0.2 \
-    python3-libcamera \
-    python3-picamera2
+    libxrender-dev
+    # libcamera-ipa \
+    # libcamera0.2 \
+    # python3-libcamera \
+    # python3-picamera2
 # 作業ディレクトリの作成
 WORKDIR /app
 
