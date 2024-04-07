@@ -41,6 +41,51 @@
 
 &nbsp;
 
+# IPアドレスの固定
+Linuxシステムでは、ネットワークインターフェースの設定ファイルを編集することでIPアドレスを固定できます。具体的な手順は以下の通りです。
+
+1. ネットワークインターフェースの設定ファイルを開きます。
+   - Debianベースのシステム（Raspberry Pi OSを含む）では、`/etc/network/interfaces`ファイルを編集します。
+
+     ```bash
+     sudo nano /etc/network/interfaces
+     ```
+
+2. 以下のような設定を追加します。これらの値は実際の環境に合わせて変更してください。元の行の下に行を追加して追加します。
+```
+auto {ネットワークインターフェース名}
+iface {ネットワークインターフェース名} inet static
+    address {固定したいIPアドレス}
+    netmask {サブネットマスク}
+    gateway {ゲートウェイのIPアドレス}
+    dns-nameservers {DNSサーバーのIPアドレス}
+```
+
+例：
+```
+auto eth0
+iface eth0 inet static
+    address 192.168.0.10
+    netmask 255.255.255.0
+    gateway 192.168.0.1
+    dns-nameservers 192.168.0.1
+```
+
+3. 設定ファイルを保存し、エディタを終了します。
+
+4. 変更を適用するために、ネットワークサービスを再起動します。
+
+   ```bash
+   sudo systemctl restart networking
+   ```
+
+5. IPアドレスが正しく設定されたか確認します。
+   ```bash
+   ip addr show
+   ```
+   
+&nbsp;
+
 # Gitのインストール
 ```bash
 sudo apt update
