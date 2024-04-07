@@ -87,10 +87,9 @@ with Picamera2(0) as picam2:
             }
 
             # シリアライズ
-            # シリアライズ
             producer.produce(
                 topic=topic,
-                value=avro_serializer(message),
+                value=avro_serializer(message, ctx=None),
                 callback=delivery_report,
             )
 
