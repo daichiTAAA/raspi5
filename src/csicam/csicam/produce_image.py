@@ -42,10 +42,6 @@ schema_str = """
    "type": "record",
    "fields" : [
      {
-       "name" : "image",
-       "type" : "bytes"
-     },
-     {
        "name" : "timestamp",
        "type" : "string"
      },
@@ -56,6 +52,10 @@ schema_str = """
      {
        "name" : "image_size",
        "type" : "int"
+     },
+     {
+       "name" : "image",
+       "type" : "bytes"
      }
    ]
 }
@@ -86,10 +86,10 @@ with Picamera2(0) as picam2:
 
             # メッセージ作成
             message = {
-                "image": img_bytes,
                 "timestamp": timestamp,
                 "ip_address": ip_address,
                 "image_size": img_size,  # 画像サイズ（バイト単位）
+                "image": img_bytes,
             }
 
             # シリアライズ
