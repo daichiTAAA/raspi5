@@ -47,6 +47,10 @@ schema_str = """
      {
        "name" : "ip_address",
        "type" : "string"
+     },
+     {
+       "name" : "image_size",
+       "type" : "int"
      }
    ]
 }
@@ -83,9 +87,10 @@ with Picamera2(0) as picam2:
             }
 
             # シリアライズ
+            # シリアライズ
             producer.produce(
                 topic=topic,
-                value=avro_serializer(message, schema_str),
+                value=avro_serializer(message),
                 callback=delivery_report,
             )
 
