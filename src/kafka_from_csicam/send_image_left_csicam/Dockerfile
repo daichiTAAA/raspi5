@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.11
 
 # 必要なパッケージのインストール
 RUN apt-get update && apt-get install -y \
@@ -7,7 +7,8 @@ RUN apt-get update && apt-get install -y \
     libsm6 \
     libxext6 \
     libxrender-dev \
-    gcc
+    gcc \
+    libcap-dev
     # libcamera-ipa \
     # libcamera0.2 \
     # python3-libcamera \
