@@ -1,6 +1,7 @@
 import sys
 import time
 import socket
+from uuid import uuid4
 from datetime import datetime
 from io import BytesIO
 import tempfile
@@ -9,6 +10,11 @@ sys.path.append("/usr/lib/python3/dist-packages")
 print(sys.path)
 from picamera2 import Picamera2, Preview
 from confluent_kafka import Producer
+from confluent_kafka.serialization import (
+    StringSerializer,
+    SerializationContext,
+    MessageField,
+)
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.avro import AvroSerializer
 
@@ -56,6 +62,7 @@ schema_str = """
 """
 
 avro_serializer = AvroSerializer(schema_registry_client, schema_str)
+string_serializer = StringSerializer("utf_8")
 
 producer_conf = {"bootstrap.servers": bootstrap_servers}
 producer = Producer(producer_conf)
@@ -86,11 +93,14 @@ with Picamera2(0) as picam2:
             }
 
             # シリアライズ
-            serialized_message = avro_serializer(message, ctx=None)
+            serialized_message = avro_serializer(
+                message, SerializationContext(topic, MessageField.VALUE)
+            )
 
             # トピックを指定してメッセージを送信
             producer.produce(
                 topic=topic,
+                key=string_serializer(str(uuid4())),
                 value=serialized_message,
                 callback=delivery_report,
             )
