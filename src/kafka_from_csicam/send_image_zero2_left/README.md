@@ -12,7 +12,7 @@
 ### 必要なパッケージのインストール
 aptパッケージをインストールする
 ```bash
-sudo apt-get update && sudo apt-get install -y ffmpeg libopencv-dev python3-opencv
+sudo apt-get update && sudo apt-get install -y librdkafka-dev
 ```
 venvで仮想環境を作成する。
 ```bash
