@@ -77,7 +77,7 @@ with Picamera2(0) as picam2:
         img_buffer = BytesIO()
         # 一時ファイルを作成
         with tempfile.NamedTemporaryFile(suffix=".jpg") as temp_file:
-            picam2.capture_file(temp_file.name)
+            picam2.start_and_capture_file(temp_file.name)
 
             # 一時ファイルから画像データを読み込む
             temp_file.seek(0)
