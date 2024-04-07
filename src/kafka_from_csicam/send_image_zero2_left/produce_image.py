@@ -69,12 +69,12 @@ producer = Producer(producer_conf)
 
 with Picamera2(0) as picam2:
     picam2.start_preview(Preview.NULL)
-    # 画像の解像度を設定（例：幅1280px、高さ1080px）
-    picam2.configure(picam2.create_preview_configuration(main={"size": (1280, 1080)}))
+    # 画像の解像度を設定（例：幅640x、高さ480px）
+    picam2.configure(picam2.create_preview_configuration(main={"size": (640, 480)}))
 
     while True:
         img_buffer = BytesIO()
-        picam2.capture_buffer(img_buffer, format="jpeg")
+        picam2.capture_file(img_buffer, format="jpeg")
         img_bytes = img_buffer.getvalue()
         img_size = len(img_bytes)
 
