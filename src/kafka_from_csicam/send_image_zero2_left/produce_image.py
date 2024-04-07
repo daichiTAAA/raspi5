@@ -70,13 +70,14 @@ producer = Producer(producer_conf)
 with Picamera2(0) as picam2:
     picam2.start_preview(Preview.NULL)
     # 画像の解像度を設定（例：幅640x、高さ480px）
-    picam2.configure(picam2.create_preview_configuration(main={"size": (640, 480)}))
+    config = picam2.create_preview_configuration(main={"size": (640, 480)})
+    picam2.configure(config)
 
     while True:
         img_buffer = BytesIO()
         # 一時ファイルを作成
         with tempfile.NamedTemporaryFile(suffix=".jpg") as temp_file:
-            picam2.start_and_capture_file(temp_file.name)
+            picam2.capture_file(temp_file.name)
 
             # 一時ファイルから画像データを読み込む
             temp_file.seek(0)
