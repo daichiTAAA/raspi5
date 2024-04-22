@@ -103,7 +103,7 @@ python get_image.py
 ## 4. MediaMTXコンテナを実行する
 ```bash
 cd src/csicam
-docker compose up
+sudo docker compose up
 ```
 
 ## 5. RaspberryPi5がRaspberry Pi Camera Module V3が撮影した動画を取得しMediaMTX経由でRTSP形式のビデオストリームを配信する
