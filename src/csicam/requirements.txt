@@ -1,4 +1,1 @@
 ffmpeg-python
-picamera2
-confluent-kafka
-fastavro
