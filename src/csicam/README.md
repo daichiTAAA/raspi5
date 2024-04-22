@@ -95,19 +95,19 @@ pip install --no-cache-dir -r requirements.txt
 
 ## 3. カメラで写真を撮影可能か確認する
 ```bash
-cd src/csicam/csicam
+cd ~/raspi5/src/csicam/csicam
 python get_image.py
 ```
 
 ## 4. MediaMTXコンテナを実行する
 ```bash
-cd src/csicam
+cd ~/raspi5/src/csicam
 sudo docker compose up
 ```
 
 ## 5. RaspberryPi5がRaspberry Pi Camera Module V3が撮影した動画を取得しMediaMTX経由でRTSP形式のビデオストリームを配信する
 ```bash
-cd src/csicam/csicam
+cd ~/raspi5/src/csicam/csicam
 python serve_rtsp.py
 ```
     
@@ -148,7 +148,7 @@ pip install --no-cache-dir -r requirements.txt
 
 ## 3. カメラで写真を撮影可能か確認する
 ```bash
-cd src/csicam/csicam
+cd ~/raspi5/src/csicam/csicam
 python get_image.py
 ```
 
