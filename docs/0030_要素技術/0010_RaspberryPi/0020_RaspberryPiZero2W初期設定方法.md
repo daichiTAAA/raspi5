@@ -3,7 +3,7 @@
 # 作成記録
 ---
 * 作成日時 2024/4/3 野田大一郎
-* 更新日時 2024/4/7 野田大一郎
+* 更新日時 2024/4/22 野田大一郎
 &nbsp;
 # 概要
 ---
@@ -22,7 +22,7 @@
 ---
 # 初期設定方法
 * RaspberryPi5の初期設定方法とほぼ同じ
-* メモリが少ないため64bitでなく、RaspberryPiOS Lite 32bitの方が良い。しかし、confluent-kafkaは64bitでないと使用できない。そのため、64bit版を使用する。
+* メモリが少ないため64bitでなく、RaspberryPiOS Lite 32bitの方が良い。しかし、confluent-kafkaは64bitでないと使用できない。そのため、もしKafkaを使用する場合は64bit版を使用する。
 * 無線LANは2.4GHzのみ使用可能なためSSIDは5GHz用でなく、2.4GHz用を使用することに注意する
 
 &nbsp;
@@ -128,7 +128,7 @@ echo \
   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 ```
 ```bash
-sudo apt-get updateß
+sudo apt-get update
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
 
