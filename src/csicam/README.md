@@ -73,8 +73,7 @@ sudo apt-get update && sudo apt-get install -y \
 Raspberry Pi Zero 2 Wの場合、
 ```bash
 sudo apt update
-sudo apt install ffmpeg
-sudo apt install python3-opencv
+sudo apt install -y ffmpeg python3-opencv
 ```
 
 venvで仮想環境を作成する。
