@@ -60,12 +60,19 @@ iface wlan0 inet static
 ## 1. Raspberry Pi OS Lite(64bit)をセットアップし、RaspberryPi5にSSHで接続して実行する。
 
 ## 2. 下記のコマンドでaptパッケージとPythonパッケージをインストールする
+Raspberry Pi 5の場合、
 ```bash
 sudo apt-get update && sudo apt-get install -y \
     libcamera-ipa \
     libcamera0.2 \
     python3-libcamera \
     python3-picamera2 \
+    ffmpeg
+```
+
+Raspberry Pi Zero 2 Wの場合、
+```bash
+sudo apt-get update && sudo apt-get install -y \
     ffmpeg
 ```
 
