@@ -173,3 +173,40 @@ python serve_rtsp.py
 ```
 rtsp://{RaspberryPi Zero 2 W IP Address}:8554/stream
 ```
+
+## 7. systemdを使用した自動実行設定
+Bullseyeの起動時にPython仮想環境(venv)をアクティベートし、指定したPythonスクリプトを自動実行するには、以下の手順を実施するのがおすすめです。
+
+1. まず、実行したいPythonスクリプトを作成し、パスを控えておきます(例: /home/pidn/raspi5/src/csicam/csicam/serve_rtsp.py)。
+
+2. 次に、systemdを使ってサービスファイルを作成します。
+sudo nano /etc/systemd/system/myscript.service
+以下の内容を記述します。
+
+[Unit]
+Description=RTSP streaming
+After=multi-user.target
+
+[Service] 
+User=pidn
+WorkingDirectory=/home/pidn
+ExecStart=/home/pidn/raspi5/stream/bin/python /home/pidn/raspi5/src/csicam/csicam/serve_rtsp.py
+
+[Install]
+WantedBy=multi-user.target
+
+ExecStartの行で、venvのpythonのパスとスクリプトのパスを指定します。
+
+3. サービスファイルを保存し、実行権限を付与します。
+sudo chmod 644 /etc/systemd/system/myscript.service
+
+4. systemdにサービスファイルを読み込ませ、自動起動を有効化します。
+sudo systemctl daemon-reload
+sudo systemctl enable myscript.service
+
+5. 再起動して、スクリプトが自動実行されることを確認します。
+sudo reboot
+
+これで、Bullseyeの起動時にvenvがアクティベートされ、指定したPythonスクリプトが自動実行されるはずです。
+
+スクリプトの内容によっては、ネットワークの準備ができる前に実行されて失敗する可能性もあるので、その場合はAfter=network.targetなどの指定が必要になります。
