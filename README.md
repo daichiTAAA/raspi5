@@ -32,7 +32,3 @@
 2. [Rancher](src/rancher)を起動し、クラスターを作成
 3. [CSIカメラ](src/csicam)をRaspberry Pi Zero 2 Wで起動し、RTSPストリームを配信
 4. Raspberry Pi 5上で3D復元処理を実行
-
-## ライセンス
-
-このプロジェクトはApache License 2.0ライセンスの下で公開されています。詳細は[LICENSE](LICENSE)ファイルを参照してください。
