@@ -5,15 +5,16 @@ import os
 import concurrent.futures
 
 # IPアドレス
-ip_address = "192.168.0.3"
+ip_address_left = "192.168.0.201"
+ip_address_right = "192.168.0.202"
 
 # RTSP URL
-rtsp_url1 = f"rtsp://{ip_address}:8554/stream1"
-rtsp_url2 = f"rtsp://{ip_address}:8554/stream2"
+rtsp_url1 = f"rtsp://{ip_address_left}:8554/stream1"
+rtsp_url2 = f"rtsp://{ip_address_right}:8554/stream1"
 
 # 保存先フォルダ
-output_folder1 = "output1"
-output_folder2 = "output2"
+output_folder1 = "left_image"
+output_folder2 = "right_image"
 
 # 切り出しfps
 extract_fps = 1
@@ -23,7 +24,7 @@ os.makedirs(output_folder1, exist_ok=True)
 os.makedirs(output_folder2, exist_ok=True)
 
 
-def process_stream(rtsp_url, output_folder):
+def process_stream(rtsp_url, output_folder, ip_address):
     # 画像切り出しと保存
     (
         ffmpeg.input(rtsp_url)
@@ -43,8 +44,8 @@ def process_stream(rtsp_url, output_folder):
 # マルチスレッドで並列処理
 with concurrent.futures.ThreadPoolExecutor() as executor:
     futures = [
-        executor.submit(process_stream, rtsp_url1, output_folder1),
-        executor.submit(process_stream, rtsp_url2, output_folder2),
+        executor.submit(process_stream, rtsp_url1, output_folder1, ip_address_left),
+        executor.submit(process_stream, rtsp_url2, output_folder2, ip_address_right),
     ]
 
     # すべての処理が完了するまで待機
