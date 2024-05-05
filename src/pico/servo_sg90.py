@@ -1,18 +1,23 @@
-from machine import PWM, Pin
-from time import sleep
+from machine import Pin, PWM
+import utime
 
-servo = PWM(Pin(28))
-servo.freq(50)
 
-angle_0 = int(2.5 / 20 * 65536)
-angle_90 = int(1.5 / 20 * 65536)
-angle_180 = int(0.5 / 20 * 65536)
+class Servo:
+    def __init__(self, MIN_DUTY=300000, MAX_DUTY=2300000, pin=0, freq=50):
+        self.pwm = PWM(Pin(pin))
+        self.pwm.freq(freq)
+        self.MIN_DUTY = MIN_DUTY
+        self.MAX_DUTY = MAX_DUTY
 
-servo.duty_u16(angle_0)
-sleep(1)
-servo.duty_u16(angle_90)
-sleep(1)
-servo.duty_u16(angle_180)
-sleep(1)
+    def rotateDeg(self, deg):
+        if deg < 0:
+            deg = 0
+        elif deg > 180:
+            deg = 180
+        duty_ns = int(self.MAX_DUTY - deg * (self.MAX_DUTY - self.MIN_DUTY) / 180)
+        self.pwm.duty_ns(duty_ns)
 
-servo.duty_u16(0)
+
+servo = Servo(pin=28)
+
+servo.rotateDeg(0)

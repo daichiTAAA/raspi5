@@ -27,22 +27,21 @@
 # Raspberry Pi Pico W ピン配置
 ![RaspberryPiPicoWPinout](./images/RaspberryPiPicoWPinout.png)
 
+# SG90データシート
+![sg90_datasheet](./images/sg90_datasheet.png)
+
 # 参考
 * [Raspberry Pi Pico WとPWMでサーボを制御する](https://picockpit.com/raspberry-pi/ja/%E3%83%A9%E3%82%BA%E3%83%99%E3%83%AA%E3%83%BC%E3%83%91%E3%82%A4%E3%83%BB%E3%83%94%E3%82%B3w%E3%83%BB%E3%83%91%E3%83%AB%E3%82%B9%E5%B9%85%E5%A4%89%E8%AA%BF%E3%83%BBpwm%E3%81%AB%E3%82%88%E3%82%8B/)
 * [【MicroPython】RaspberryPi Pico/Pico WでサーボモーターSG90を使う方法](https://tech-and-investment.com/raspberrypi-picow-12-servo/)
+* [ラズベリーパイでのサーボモーターの使い方](https://raspi-school.com/servo/)
 
 # 制御方法
 Raspberry Pi PicoでTower Pro SG90サーボモータを制御するには、以下の手順で行うことができます。
 
 ## 1. 配線
 
-SG90サーボモータとPicoを以下のように接続します。
-
-- サーボモータのオレンジ色の信号線をPicoのGPIO 28ピンに接続
-- サーボモータの赤い電源線をPicoのVBUS (5V)ピンに接続  
-- サーボモータの茶色のGND線をPicoのGNDピンに接続
-
-SG90の動作電圧は4.8V〜6Vなので、Picoの3.3V端子ではなく5V端子を使います。
+SG90サーボモータとPicoを以下のように接続します。<br>
+![connect_pico_and_sg90](./images/connect_pico_and_sg90.png)
 
 ## 2. プログラム
 
