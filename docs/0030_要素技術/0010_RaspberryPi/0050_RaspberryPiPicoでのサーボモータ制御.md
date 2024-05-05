@@ -25,9 +25,11 @@
 * Tower Pro SG90サーボモータ
 
 # Raspberry Pi Pico W ピン配置
+* https://datasheets.raspberrypi.com/picow/PicoW-A4-Pinout.pdf
 ![RaspberryPiPicoWPinout](./images/RaspberryPiPicoWPinout.png)
 
 # SG90データシート
+* https://akizukidenshi.com/goodsaffix/SG90_a.pdf
 ![sg90_datasheet](./images/sg90_datasheet.png)
 
 # 参考
