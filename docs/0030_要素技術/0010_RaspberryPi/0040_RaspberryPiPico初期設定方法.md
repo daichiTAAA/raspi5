@@ -87,7 +87,10 @@ Raspberry Pi 5のターミナルからRaspberry Pi PicoにMicroPythonファー�
     Raspberry Pi 5を再起動します。この時、<br>
     Raspberry Pi 5にRaspberry Pi Picoを接続した状態でRaspberry Pi 5の電源を入れます。<br>
     この時、Raspberry Pi PicoのBOOTSELボタンを押した状態で電源を入れます。<br>
-    Raspberry Pi 5の緑のランプがついて数秒経過したらBOOTSELボタンを離します。
+    Raspberry Pi 5の緑のランプがついて数秒経過したらBOOTSELボタンを離します。<br>
+    この手順を実行する理由は、PicoのBOOTSELボタンを押しながら接続することで、マスストレージモードで起動し、<br>
+    Raspberry Pi 5へのRaspberry Pi Picoのマウントトライのタイムアウト(fstabの設定に追記したdevice-timeoutの秒数でタイムアウトする)前に、<br>
+    PicoのBOOTSELボタンを離すことでマウントするためです。
 
 5. ダウンロードしたファームウェアをPicoにコピーします。
    Raspberry Pi Picoの場合
