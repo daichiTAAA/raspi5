@@ -1,19 +1,18 @@
-from machine import Pin, PWM
-import utime
+from machine import PWM, Pin
+from time import sleep
 
-pwm = PWM(Pin(0))  # GPIO 0にPWM設定
-pwm.freq(50)  # PWM周波数を50Hzに
+servo = PWM(Pin(28))
+servo.freq(50)
 
+angle_0 = int(2.5 / 20 * 65536)
+angle_90 = int(1.5 / 20 * 65536)
+angle_180 = int(0.5 / 20 * 65536)
 
-def servo_write(degrees):
-    duty = int((degrees * 9500 / 180) + 2500)
-    pwm.duty_u16(duty)
+servo.duty_u16(angle_0)
+sleep(1)
+servo.duty_u16(angle_90)
+sleep(1)
+servo.duty_u16(angle_180)
+sleep(1)
 
-
-while True:
-    servo_write(0)  # 0度の位置に
-    utime.sleep(1)
-    servo_write(90)  # 90度の位置に
-    utime.sleep(1)
-    servo_write(180)  # 180度の位置に
-    utime.sleep(1)
+servo.duty_u16(0)

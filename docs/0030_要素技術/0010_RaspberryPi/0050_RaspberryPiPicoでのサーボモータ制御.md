@@ -27,6 +27,10 @@
 # Raspberry Pi Pico W ピン配置
 ![RaspberryPiPicoWPinout](./images/RaspberryPiPicoWPinout.png)
 
+# 参考
+* [Raspberry Pi Pico WとPWMでサーボを制御する](https://picockpit.com/raspberry-pi/ja/%E3%83%A9%E3%82%BA%E3%83%99%E3%83%AA%E3%83%BC%E3%83%91%E3%82%A4%E3%83%BB%E3%83%94%E3%82%B3w%E3%83%BB%E3%83%91%E3%83%AB%E3%82%B9%E5%B9%85%E5%A4%89%E8%AA%BF%E3%83%BBpwm%E3%81%AB%E3%82%88%E3%82%8B/)
+* [【MicroPython】RaspberryPi Pico/Pico WでサーボモーターSG90を使う方法](https://tech-and-investment.com/raspberrypi-picow-12-servo/)
+
 # 制御方法
 Raspberry Pi PicoでTower Pro SG90サーボモータを制御するには、以下の手順で行うことができます。
 
@@ -34,7 +38,7 @@ Raspberry Pi PicoでTower Pro SG90サーボモータを制御するには、以�
 
 SG90サーボモータとPicoを以下のように接続します。
 
-- サーボモータのオレンジ色の信号線をPicoのGPIO 0ピンに接続
+- サーボモータのオレンジ色の信号線をPicoのGPIO 28ピンに接続
 - サーボモータの赤い電源線をPicoのVBUS (5V)ピンに接続  
 - サーボモータの茶色のGND線をPicoのGNDピンに接続
 
@@ -45,30 +49,31 @@ SG90の動作電圧は4.8V〜6Vなので、Picoの3.3V端子ではなく5V端子
 以下のMicroPythonコードでサーボモータを制御できます。
 
 ```python
-from machine import Pin, PWM
-import utime
+from machine import PWM, Pin
+from time import sleep
 
-pwm = PWM(Pin(0))  # GPIO 0にPWM設定
-pwm.freq(50)  # PWM周波数を50Hzに
+servo = PWM(Pin(28))
+servo.freq(50)
 
-def servo_write(degrees):
-    duty = int((degrees * 9500 / 180) + 2500)
-    pwm.duty_u16(duty)
+angle_0 = int(2.5 / 20 * 65536)
+angle_90 = int(1.5 / 20 * 65536)
+angle_180 = int(0.5 / 20 * 65536)
 
-while True:
-    servo_write(0)  # 0度の位置に
-    utime.sleep(1)
-    servo_write(90)  # 90度の位置に  
-    utime.sleep(1)
-    servo_write(180)  # 180度の位置に
-    utime.sleep(1)
+servo.duty_u16(angle_0)
+sleep(1)
+servo.duty_u16(angle_90)
+sleep(1)
+servo.duty_u16(angle_180)
+sleep(1)
+
+servo.duty_u16(0)
 ```
 
 ポイントは以下の通りです。
 
-- PWM周波数は50Hzに設定[1][4]
-- SG90の制御パルス幅は0.5ms〜2.4msなので[4]、これを16ビット(0〜65535)のduty比に変換
-- 0度: 0.5ms = 2500/65535、180度: 2.4ms = 12000/65535 より、duty比は角度に比例して2500〜12000の範囲で変化させる[1]
+- PWM周波数は50Hzに設定
+- SG90の制御パルス幅は0.5ms〜2.4msなので、これを16ビット(0〜65535)のduty比に変換
+- 0度: 0.5ms = 2500/65535、180度: 2.4ms = 12000/65535 より、duty比は角度に比例して2500〜12000の範囲で変化させる
 
 ## 3. 動作範囲の調整
 
