@@ -34,8 +34,15 @@ Raspberry Pi 5のターミナルからRaspberry Pi PicoにMicroPythonファー�
 1. Raspberry Pi PicoをRaspberry Pi 5のUSBポートに接続します。その際、PicoのBOOTSELボタンを押しながら接続すると、マスストレージモードで起動します。
 
 2. ターミナルを開き、MicroPythonファームウェアをダウンロードします。
+   Raspberry Pi Picoの場合
    ```
+   cd ~
    wget https://micropython.org/download/rp2-pico/rp2-pico-latest.uf2
+   ```
+   Raspberry Pi Pico Wの場合
+   ```
+   cd ~
+   wget https://micropython.org/download/rp2-pico-w/rp2-pico-w-latest.uf2
    ```
    これにより、最新のMicroPythonファームウェアがカレントディレクトリにダウンロードされます。
 
@@ -75,13 +82,23 @@ Raspberry Pi 5のターミナルからRaspberry Pi PicoにMicroPythonファー�
     ```
     fstabに以下の行を追加します。
     ```bash
-    /dev/sda1 /media/pico vfat defaults 0 0
+    /dev/sda1 /media/pico vfat defaults,nofail,x-systemd.device-timeout=10 0 0
     ```
-    Raspberry Pi 5を再起動します。
+    Raspberry Pi 5を再起動します。この時、<br>
+    Raspberry Pi 5にRaspberry Pi Picoを接続した状態でRaspberry Pi 5の電源を入れます。<br>
+    この時、Raspberry Pi PicoのBOOTSELボタンを押した状態で電源を入れます。<br>
+    Raspberry Pi 5の緑のランプがついて数秒経過したらBOOTSELボタンを離します。
 
 5. ダウンロードしたファームウェアをPicoにコピーします。
+   Raspberry Pi Picoの場合
    ```
-   cp ~/rp2-pico-latest.uf2 .
+   cd /media/pico
+   sudo cp ~/rp2-pico-latest.uf2 .
+   ```
+   Raspberry Pi Pico Wの場合
+   ```
+   cd /media/pico
+   sudo cp ~/rp2-pico-w-latest.uf2 .
    ```
    ファームウェアのファイル名とパスは、手順2でダウンロードした場所に合わせて適宜変更してください。
 
@@ -118,44 +135,19 @@ micropy stubs search rp2
 pip install -U micropython-rp2-pico_w-stubs
 ```
 
-* 適切なスタブパッケージをインストールした後、micropy init を実行するとプロジェクトを作成できます。
-
-```bash
-micropy init
-```
-
 ## 2. VS Codeの設定
+* VSCodeのコマンドパレット(cmd+Shift+P)からMicroPico: Configure Projectを実行する
+* `.vscode/settings.json`を開き、`python.languageServer`を`"Pylance"`に変更。
 
-`.vscode/settings.json`を開き、`python.languageServer`を`"Pylance"`に変更。
+## 3. サンプルコードの実行
 
-## 3. Pymakrのインストールと接続設定
-
-- VS CodeにPymakr拡張機能をインストール。
-- `pymakr.conf`の`address`にPicoのシリアルポートのパスを指定。
-
-## 4. シリアルポートの確認方法
-
-### Linux
-
-```bash
-ls /dev/tty*
-```
-
-Picoを接続前後で実行し、新たに表示されたデバイス（例：`/dev/ttyACM0`）がPicoのシリアルポート。
-
-### Windows
-
-デバイスマネージャを開き、「ポート（COMとLPT）」の下に表示された新しいCOMポート番号（例：COM3）がPicoのシリアルポート。
-
-## 5. サンプルコードの実行
-
-`main.py`にサンプルコードを書き、Pymakrの「Run」ボタンでPicoに転送・実行。
+`flash.py`にサンプルコードを書き、Pymakrの「Run」ボタンでPicoに転送・実行。
 
 ```python
 from machine import Pin
 import time
 
-led = Pin(25, Pin.OUT)
+led = Pin("LED", Pin.OUT)
 
 while True:
     led.toggle()
