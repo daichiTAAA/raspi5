@@ -67,7 +67,9 @@ sudo apt-get update && sudo apt-get install -y \
     libcamera0.2 \
     python3-libcamera \
     python3-picamera2 \
-    ffmpeg
+    ffmpeg \
+    libopencv-dev \
+    python3-opencv
 ```
 
 Raspberry Pi Zero 2 Wの場合、
@@ -170,6 +172,13 @@ python serve_rtsp.py
 ## 6. 外部PCからのRTSPビデオストリームの受信
 * VLC Media Playerをインストールする。
 * 下記のURLをファイル→ネットワーク画面で、下記のURLを入力し表示する。
+
+RaspberryPi 5の場合
+```
+rtsp://{RaspberryPi 5 Address}:8554/stream1
+rtsp://{RaspberryPi 5 Address}:8554/stream2
+```
+RaspberryPi Zero 2 Wの場合
 ```
 rtsp://{RaspberryPi Zero 2 W IP Address}:8554/stream
 ```
