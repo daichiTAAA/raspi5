@@ -241,10 +241,11 @@ MauiProgram.cs`ファイルを開き、`CreateMauiVideoApp`メソッド内に以
   ```
 
 6. プロジェクトを実行するには、以下のコマンドを実行します。
-  ```bash
-  dotnet build
-  dotnet run
-  ```
+   ```
+   cd src/MauiVideoApp
+   dotnet build -f net8.0-maccatalyst
+   dotnet run -f net8.0-maccatalyst
+   ```
 
 これにより、.NET MAUIアプリケーションとBlazorを組み合わせて、RTSPビデオストリームをアプリケーションのウィンドウ内に表示することができます。Blazorコンポーネントは、指定されたRTSPストリームを再生し、.NET MAUIアプリケーションのレイアウト内に埋め込まれます。
 
