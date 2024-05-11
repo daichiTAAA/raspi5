@@ -1,12 +1,10 @@
 from fastapi import FastAPI
 
-from api.routers import (
-    stream
-)
+from api.routers import camera
 
 app = FastAPI()
 
-app.include_router(stream.router_v1, prefix="/v1")
+app.include_router(camera.router_v1, prefix="/v1")
 
 
 @app.get("/")
