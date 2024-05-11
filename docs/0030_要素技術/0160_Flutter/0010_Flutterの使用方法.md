@@ -21,5 +21,5 @@
 # 内容
 ---
 # インストール方法
-1. Flutterの公式ページから取得
+1. Flutterの公式ページから取得<br>
 https://docs.flutter.dev/get-started/install
