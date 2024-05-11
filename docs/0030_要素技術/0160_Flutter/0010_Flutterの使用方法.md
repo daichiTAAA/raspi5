@@ -23,3 +23,11 @@
 # インストール方法
 1. Flutterの公式ページから取得<br>
 https://docs.flutter.dev/get-started/install
+
+# プロジェクトの作成方法
+1. Flutterの公式ページドキュメントを参照する<br>
+https://docs.flutter.dev/get-started/test-drive
+
+# Flutterのデバック方法
+1. VSCodeの左側のRun and Debugアイコンを選択する。
+2. 上側に表示されるRUN AND DEBUGでFlutterを選択する。
