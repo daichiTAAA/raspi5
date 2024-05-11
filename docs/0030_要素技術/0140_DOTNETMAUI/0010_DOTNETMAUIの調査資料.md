@@ -177,15 +177,16 @@ Visual Studio Codeは、.NET MAUIアプリケーションの開発に適した�
 .NET MAUIとBlazorを組み合わせて、RTSPビデオストリームをアプリケーションのウィンドウ内に表示することができます。以下は、その方法の概要です。
 
 1. .NET MAUIアプリケーションプロジェクトにBlazorのサポートを追加します。
-MauiProgram.cs`ファイルを開き、`CreateMauiVideoApp`メソッド内に以下のコードを追加します。
+MauiProgram.cs`ファイルを開き、`CreateMauiApp`メソッド内に以下のコードを追加します。
    ```csharp
    builder.Services.AddMauiBlazorWebView();
    ```
 
 2. `LibVLCSharp.Blazor` ライブラリをNuGetパッケージマネージャからインストールします。このライブラリは、BlazorアプリケーションでLibVLCを使用するために必要です。
 
-   ```
-   Idotnet add package LibVLCSharp.Blazor
+   ```bash
+   dotnet add package LibVLCSharp
+   dotnet add package VideoLAN.LibVLC.Mac
    ```
 
 3. `Pages`ディレクトリを作成し、その中に`VideoView.razor`ファイルを作成します。以下のコードを`VideoView.razor`に追加します。
