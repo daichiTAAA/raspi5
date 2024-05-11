@@ -17,8 +17,8 @@ class CameraService:
 
         try:
             process = (
-                ffmpeg.input(rtsp_url)
-                .output("pipe:", format="rawvideo", pix_fmt="rgb24", vf="fps=15")
+                ffmpeg.input(rtsp_url, rtsp_transport="tcp")
+                .output("pipe:", format="rawvideo")
                 .run_async(pipe_stdout=True)
             )
             self.cameras[camera_id] = Camera(id=camera_id, process=process)
@@ -26,11 +26,12 @@ class CameraService:
             raise HTTPException(status_code=500, detail=str(e))
 
     async def get_frame(self, camera_id: str):
+        logger.info("api.services.camera_service.get_frame")
         if camera_id not in self.cameras:
             return None
 
         camera = self.cameras[camera_id]
-        frame = camera.process.stdout.read(640 * 480 * 3)
+        frame = camera.process.stdout.read(1280 * 720 * 3)
         return frame
 
     async def stop_stream(self, camera_id: str):
