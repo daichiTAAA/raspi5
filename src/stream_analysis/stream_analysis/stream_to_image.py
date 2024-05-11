@@ -5,12 +5,12 @@ import os
 import concurrent.futures
 
 # IPアドレス
-ip_address_left = "192.168.0.201"
-ip_address_right = "192.168.0.202"
+ip_address_left = "192.168.0.101"
+ip_address_right = "192.168.0.101"
 
 # RTSP URL
 rtsp_url1 = f"rtsp://{ip_address_left}:8554/stream1"
-rtsp_url2 = f"rtsp://{ip_address_right}:8554/stream1"
+rtsp_url2 = f"rtsp://{ip_address_right}:8554/stream2"
 
 # 保存先フォルダ
 output_folder1 = "left_image"
