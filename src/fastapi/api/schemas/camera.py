@@ -1,13 +1,6 @@
 from pydantic import BaseModel
 
 
-class StreamRequest(BaseModel):
+class CameraAddRequest(BaseModel):
+    camera_id: str
     rtsp_url: str
-
-
-class StreamResponse(BaseModel):
-    message: str
-
-
-class ErrorResponse(BaseModel):
-    detail: str

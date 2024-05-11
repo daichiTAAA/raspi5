@@ -1,33 +1,33 @@
-from fastapi import APIRouter, Depends, Response, HTTPException
-import cv2
-import ffmpeg
-from typing import List
-
-from api.schemas.camera import StreamRequest, StreamResponse, ErrorResponse
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from api.services.camera_service import CameraService
+from api.schemas.camera import CameraAddRequest
 from api.setup_logger import setup_logger
 
 logger, log_decorator = setup_logger(__name__)
 
 router_v1 = APIRouter(
-    prefix="/camera_stream",
+    prefix="/cameras",
     tags=["camera stream"],
     responses={404: {"description": "Not found"}},
 )
 
 
-@router_v1.post(
-    "/start_stream/{camera_id}",
-    response_model=StreamResponse,
-    responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
-)
+@router_v1.post("")
+async def add_camera(
+    camera_request: CameraAddRequest, camera_service: CameraService = Depends()
+):
+    await camera_service.add_camera(camera_request.camera_id, camera_request.rtsp_url)
+    return {"message": f"Camera {camera_request.camera_id} added successfully"}
+
+
+@router_v1.post("/{camera_id}/start")
 async def start_stream(
     camera_id: str,
-    stream_request: StreamRequest,
     camera_service: CameraService = Depends(),
 ):
     try:
-        await camera_service.start_stream(camera_id, stream_request.rtsp_url)
+        await camera_service.start_stream(camera_id)
         return {"message": f"Stream started for camera {camera_id}"}
     except HTTPException as e:
         raise e
@@ -35,18 +35,28 @@ async def start_stream(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router_v1.get("/get_frame/{camera_id}", responses={404: {"model": ErrorResponse}})
-async def get_frame(camera_id: str, camera_service: CameraService = Depends()):
-    frame = await camera_service.get_frame(camera_id)
-    if frame:
-        return Response(content=frame, media_type="image/jpeg")
-    else:
-        raise HTTPException(
-            status_code=404, detail=f"No frame available for camera {camera_id}"
-        )
+@router_v1.get("/{camera_id}/stream")
+def get_stream(camera_id: str, camera_service: CameraService = Depends()):
+    try:
+        stream = camera_service.get_stream(camera_id)
+        return StreamingResponse(stream, media_type="application/vnd.apple.mpegurl")
+    except HTTPException as e:
+        raise e
 
 
-@router_v1.post("/stop_stream/{camera_id}", response_model=StreamResponse)
+@router_v1.post("/{camera_id}/stop")
 async def stop_stream(camera_id: str, camera_service: CameraService = Depends()):
-    await camera_service.stop_stream(camera_id)
-    return {"message": f"Stream stopped for camera {camera_id}"}
+    try:
+        await camera_service.stop_stream(camera_id)
+        return {"message": f"Stream stopped for camera {camera_id}"}
+    except HTTPException as e:
+        raise e
+
+
+@router_v1.delete("/{camera_id}")
+async def remove_camera(camera_id: str, camera_service: CameraService = Depends()):
+    try:
+        await camera_service.remove_camera(camera_id)
+        return {"message": f"Camera {camera_id} removed successfully"}
+    except HTTPException as e:
+        raise e
