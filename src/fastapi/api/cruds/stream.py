@@ -23,7 +23,6 @@ async def get_frame(stream: ffmpeg.Stream):
         # ffmpegからのエラー情報をログに出力
         if stderr:
             logger.error(f"ffmpeg stderr: {stderr.decode()}")
-            raise Exception(f"ffmpeg stderr: {stderr.decode()}")
         else:
             # フレームをJPEG形式にエンコード
             _, encoded_frame = cv2.imencode('.jpg', frame)
