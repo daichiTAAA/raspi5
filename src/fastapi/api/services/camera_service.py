@@ -1,7 +1,9 @@
+import asyncio
 import io
 
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.responses import StreamingResponse
+from fastapi.staticfiles import StaticFiles
 import ffmpeg
 import psutil
 
@@ -11,6 +13,11 @@ from api.setup_logger import setup_logger
 logger, log_decorator = setup_logger(__name__)
 
 app = FastAPI()
+try:
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+    logger.info("Mounted static directory")
+except Exception as e:
+    logger.error(f"Error mounting static directory: {e}")
 
 
 class CameraService:
@@ -20,7 +27,9 @@ class CameraService:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance.cameras = {}
+            logger.info("CameraService instance created")
             # 実行中のFFmpegプロセスを停止する
+            logger.info("Stopping FFmpeg processes")
             cls._instance.stop_ffmpeg_processes()
         return cls._instance
 
@@ -34,7 +43,16 @@ class CameraService:
                         # FFmpegプロセスを停止する
                         proc.terminate()
                         print(f"Terminated FFmpeg process: {cmdline}")
-            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                        logger.info(f"Terminated FFmpeg process: {cmdline}")
+            except (
+                psutil.NoSuchProcess,
+                psutil.AccessDenied,
+                psutil.ZombieProcess,
+            ) as e:
+                logger.error(f"Error stopping FFmpeg process: {e}")
+                pass
+            except Exception as e:
+                logger.error(f"Error stopping FFmpeg process: {e}")
                 pass
 
     async def add_camera(self, camera_id: str, rtsp_url: str):
@@ -42,69 +60,109 @@ class CameraService:
             f"api.services.camera_service.add_camera: camera_id: {camera_id}, rtsp_url: {rtsp_url}"
         )
         if camera_id in self.cameras:
+            logger.error(f"Camera already exists: {camera_id}")
             raise HTTPException(status_code=400, detail="Camera already exists")
-
-        self.cameras[camera_id] = Camera(id=camera_id, rtsp_url=rtsp_url, process=None)
+        try:
+            self.cameras[camera_id] = Camera(
+                id=camera_id, rtsp_url=rtsp_url, process=None
+            )
+            logger.info(f"Camera {camera_id} added successfully")
+        except Exception as e:
+            logger.error(f"Error adding camera {camera_id}: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
 
     async def start_stream(self, camera_id: str):
         if camera_id not in self.cameras:
+            logger.error(f"Camera not found: {camera_id}")
             raise HTTPException(status_code=404, detail="Camera not found")
 
         camera = self.cameras[camera_id]
 
         if camera.process is not None:
+            logger.error(f"Camera is already streaming: {camera_id}")
             raise HTTPException(status_code=400, detail="Camera is already streaming")
 
         try:
+            logger.info(f"Starting stream for camera {camera_id}")
             process = (
                 ffmpeg.input(camera.rtsp_url, rtsp_transport="tcp")
-                .output("pipe:1", format="mpegts")
+                .output(
+                    f"static/camera_{camera_id}.m3u8",
+                    format="hls",
+                    hls_time=2,
+                    hls_list_size=10,
+                )
                 .global_args("-loglevel", "error")
-                .run_async(pipe_stdout=True, pipe_stderr=True)
+                .run_async(pipe_stdin=True, pipe_stderr=True)
             )
             camera.process = process
+            logger.info(f"Stream started for camera {camera_id}")
         except Exception as e:
+            logger.error(f"Error starting stream for camera {camera_id}: {e}")
             raise HTTPException(status_code=500, detail=str(e))
 
     def get_stream(self, camera_id: str):
         logger.info("api.services.camera_service.get_stream")
         if camera_id not in self.cameras:
+            logger.error(f"Camera not found: {camera_id}")
             raise HTTPException(status_code=404, detail="Camera not found")
 
         camera = self.cameras[camera_id]
         if camera.process is None:
+            logger.error(f"Camera is not streaming: {camera_id}")
             raise HTTPException(status_code=400, detail="Camera is not streaming")
 
-        return StreamingResponse(
-            io.BytesIO(camera.process.stdout.read()), media_type="video/mp2t"
-        )
+        logger.info(f"api.services.camera_service.get_stream: camera_id: {camera_id}")
+        return {
+            "camera_id": camera_id,
+            "url": f"http://localhost:8100/static/camera_{camera_id}.m3u8",
+        }
 
     async def stop_stream(self, camera_id: str):
         logger.info(
             f"api.services.camera_service.stop_stream: camera_id: {camera_id}, typeof(camera.process): {type(self.cameras[camera_id].process)}"
         )
         if camera_id not in self.cameras:
+            logger.error(f"Camera not found: {camera_id}")
             raise HTTPException(status_code=404, detail="Camera not found")
 
         camera = self.cameras[camera_id]
         if camera.process is None:
+            logger.error(f"Camera is not streaming: {camera_id}")
             raise HTTPException(status_code=400, detail="Camera is not streaming")
 
         if camera.process is not None:
             try:
+                logger.info(f"Stopping stream for camera {camera_id}")
                 camera.process.stdin.write("q".encode("utf-8"))
                 camera.process.wait()
+                logger.info(f"Stream stopped for camera {camera_id}")
             except Exception as e:
                 logger.error(f"Error stopping stream for camera {camera_id}: {e}")
+                raise HTTPException(status_code=500, detail=str(e))
             finally:
+                logger.info(f"Setting camera.process to None for camera {camera_id}")
                 camera.process = None
 
     async def remove_camera(self, camera_id: str):
         if camera_id not in self.cameras:
+            logger.error(f"Camera not found: {camera_id}")
             raise HTTPException(status_code=404, detail="Camera not found")
 
         camera = self.cameras[camera_id]
         if camera.process is not None:
-            await self.stop_stream(camera_id)
+            logger.info(f"Stopping stream for camera {camera_id}")
+            try:
+                logger.info(f"Stopping stream for camera {camera_id}")
+                await self.stop_stream(camera_id)
+                logger.info(f"Stream stopped for camera {camera_id}")
+            except Exception as e:
+                logger.error(f"Error stopping stream for camera {camera_id}: {e}")
+                raise HTTPException(status_code=500, detail=str(e))
 
-        del self.cameras[camera_id]
+        try:
+            del self.cameras[camera_id]
+            logger.info(f"Camera {camera_id} removed successfully")
+        except Exception as e:
+            logger.error(f"Error removing camera {camera_id}: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
