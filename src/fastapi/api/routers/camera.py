@@ -37,12 +37,12 @@ async def add_camera(
 
 
 @router_v1.post("/{camera_id}/start")
-async def start_stream(
+def start_stream(
     camera_id: str,
     camera_service: CameraService = Depends(),
 ):
     try:
-        await camera_service.start_stream(camera_id)
+        camera_service.start_stream(camera_id)
         logger.info(f"Stream started for camera {camera_id}")
         return {"message": f"Stream started for camera {camera_id}"}
     except HTTPException as e:

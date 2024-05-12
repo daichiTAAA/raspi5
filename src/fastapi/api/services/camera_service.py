@@ -1,9 +1,13 @@
 import asyncio
-import io
+import os
+import signal
+import time
 
-from fastapi import FastAPI, HTTPException, Depends
-from fastapi.responses import StreamingResponse
-from fastapi.staticfiles import StaticFiles
+import subprocess
+import json
+from datetime import datetime, timedelta
+
+from fastapi import HTTPException, Depends
 import ffmpeg
 import psutil
 
@@ -11,13 +15,6 @@ from api.models.camera import Camera
 from api.setup_logger import setup_logger
 
 logger, log_decorator = setup_logger(__name__)
-
-app = FastAPI()
-try:
-    app.mount("/static", StaticFiles(directory="static"), name="static")
-    logger.info("Mounted static directory")
-except Exception as e:
-    logger.error(f"Error mounting static directory: {e}")
 
 
 class CameraService:
@@ -71,7 +68,7 @@ class CameraService:
             logger.error(f"Error adding camera {camera_id}: {e}")
             raise HTTPException(status_code=500, detail=str(e))
 
-    async def start_stream(self, camera_id: str):
+    def start_stream(self, camera_id: str):
         if camera_id not in self.cameras:
             logger.error(f"Camera not found: {camera_id}")
             raise HTTPException(status_code=404, detail="Camera not found")
@@ -91,15 +88,38 @@ class CameraService:
                     format="hls",
                     hls_time=2,
                     hls_list_size=10,
+                    hls_segment_filename=f"static/camera_{camera_id}_%Y%m%d_%H%M%S.ts",
+                    hls_segment_type="mpegts",
+                    strftime=1,
+                    vcodec="libx264",
+                    acodec="aac",
+                    g=30,
+                    bufsize="1M",
+                    tune="zerolatency",
                 )
                 .global_args("-loglevel", "error")
                 .run_async(pipe_stdin=True, pipe_stderr=True)
             )
             camera.process = process
             logger.info(f"Stream started for camera {camera_id}")
+
+            # .m3u8ファイルの作成を待機するバックグラウンドタスクを開始
+            logger.info(
+                f"Starting background task to wait for m3u8 file for camera {camera_id}"
+            )
+            self.wait_for_m3u8_file(camera_id)
         except Exception as e:
             logger.error(f"Error starting stream for camera {camera_id}: {e}")
             raise HTTPException(status_code=500, detail=str(e))
+
+    def wait_for_m3u8_file(self, camera_id: str):
+        logger.info(
+            f"api.services.camera_service.wait_for_m3u8_file: camera_id: {camera_id}"
+        )
+        m3u8_file = f"static/camera_{camera_id}.m3u8"
+        while not os.path.exists(m3u8_file):
+            time.sleep(1)
+        logger.info(f"m3u8 file created for camera {camera_id}")
 
     def get_stream(self, camera_id: str):
         logger.info("api.services.camera_service.get_stream")
@@ -119,29 +139,25 @@ class CameraService:
         }
 
     async def stop_stream(self, camera_id: str):
-        logger.info(
-            f"api.services.camera_service.stop_stream: camera_id: {camera_id}, typeof(camera.process): {type(self.cameras[camera_id].process)}"
-        )
         if camera_id not in self.cameras:
-            logger.error(f"Camera not found: {camera_id}")
             raise HTTPException(status_code=404, detail="Camera not found")
 
         camera = self.cameras[camera_id]
-        if camera.process is None:
-            logger.error(f"Camera is not streaming: {camera_id}")
-            raise HTTPException(status_code=400, detail="Camera is not streaming")
-
-        if camera.process is not None:
+        if camera.process:
             try:
-                logger.info(f"Stopping stream for camera {camera_id}")
-                camera.process.stdin.write("q".encode("utf-8"))
-                camera.process.wait()
-                logger.info(f"Stream stopped for camera {camera_id}")
+                # SIGTERMシグナルを送信してffmpegプロセスを終了
+                camera.process.send_signal(signal.SIGTERM)
+
+                # プロセスの終了を待機（タイムアウト10秒）
+                try:
+                    camera.process.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    # タイムアウト後もプロセスが終了しない場合はSIGKILLを送信
+                    camera.process.send_signal(signal.SIGKILL)
+
             except Exception as e:
-                logger.error(f"Error stopping stream for camera {camera_id}: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
             finally:
-                logger.info(f"Setting camera.process to None for camera {camera_id}")
                 camera.process = None
 
     async def remove_camera(self, camera_id: str):
