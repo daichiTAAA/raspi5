@@ -61,12 +61,26 @@ class ApiService {
     }
   }
 
-  // Future<String> getTimestamp(String cameraId, Duration position) async {
-  //   final response = await http.get(Uri.parse('$baseUrl/v1/cameras/$cameraId/timestamp?position=${position.inSeconds}'));
-  //   if (response.statusCode == 200) {
-  //     return response.body;
-  //   } else {
-  //     throw Exception('Failed to get timestamp');
-  //   }
-  // }
+  Future<void> startLiveStream(String cameraId) async {
+    final response =
+        await http.post(Uri.parse('$baseUrl/v1/cameras/$cameraId/livestart'));
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to start live stream');
+    }
+  }
+
+  Future<String> getLiveStreamUrl(String cameraId) async {
+    final url = '$baseUrl/v1/cameras/$cameraId/live';
+    return url;
+  }
+
+  Future<void> stopLiveStream(String cameraId) async {
+    final response =
+        await http.post(Uri.parse('$baseUrl/v1/cameras/$cameraId/livestop'));
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to stop live stream');
+    }
+  }
 }

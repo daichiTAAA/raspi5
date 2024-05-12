@@ -21,15 +21,6 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> {
   final String _timestamp = 'timestamp: 未実装';
   String _currentTsFile = '';
 
-  // void _updateTimestamp() async {
-  //   final position = await _controller!.position;
-  //   final timestamp =
-  //       await _apiService.getTimestamp(widget.cameraId, position!);
-  //   setState(() {
-  //     _timestamp = timestamp;
-  //   });
-  // }
-
   Future<void> _updateCurrentTsFile() async {
     final currentPosition = await _controller!.position;
     final hlsStream = await _apiService.getStream(widget.cameraId);
@@ -52,12 +43,32 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> {
   }
 
   int _getSegmentIndexByPosition(List<String> segments, Duration position) {
-    // セグメントの長さを仮定（実際はプレイリストから取得する必要あり）
-    const segmentDuration = Duration(seconds: 10);
+    int index = 0;
+    Duration currentTime = Duration.zero;
 
-    final index = position.inSeconds ~/ segmentDuration.inSeconds;
+    for (int i = 0; i < segments.length; i++) {
+      final segmentLine = segments[i];
+      final extinf =
+          segmentLine.split(':')[0].replaceAll('#EXTINF:', '').trim();
+      final extinfParts = extinf.split(',');
+      final durationString = extinfParts[0];
+      try {
+        final segmentDuration = Duration(
+            milliseconds: (double.parse(durationString) * 1000).toInt());
 
-    return index.clamp(0, segments.length - 1);
+        if (position >= currentTime &&
+            position < currentTime + segmentDuration) {
+          index = i;
+          break;
+        }
+
+        currentTime += segmentDuration;
+      } catch (e) {
+        continue;
+      }
+    }
+
+    return index;
   }
 
   @override
@@ -173,7 +184,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> {
               child: IconButton(
                 icon: const Icon(Icons.live_tv),
                 onPressed: () {
-                  _controller?.seekTo(_controller!.value.duration);
+                  Navigator.pushNamed(context, '/live');
                 },
               ),
             ),

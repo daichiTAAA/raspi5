@@ -9,3 +9,4 @@ class Camera(BaseModel):
     id: str
     rtsp_url: str
     process: Any | None
+    cap: Any | None

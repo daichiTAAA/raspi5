@@ -2,11 +2,11 @@ import asyncio
 import os
 import signal
 import time
-
 import subprocess
 import json
 from datetime import datetime, timedelta
 
+import cv2
 from fastapi import HTTPException, Depends
 import ffmpeg
 import psutil
@@ -61,7 +61,7 @@ class CameraService:
             raise HTTPException(status_code=400, detail="Camera already exists")
         try:
             self.cameras[camera_id] = Camera(
-                id=camera_id, rtsp_url=rtsp_url, process=None
+                id=camera_id, rtsp_url=rtsp_url, process=None, cap=None
             )
             logger.info(f"Camera {camera_id} added successfully")
         except Exception as e:
@@ -86,7 +86,7 @@ class CameraService:
                 .output(
                     f"static/camera_{camera_id}.m3u8",
                     format="hls",
-                    hls_time=2,
+                    hls_time=20,
                     hls_list_size=10,
                     hls_segment_filename=f"static/camera_{camera_id}_%Y%m%d_%H%M%S.ts",
                     hls_segment_type="mpegts",
@@ -94,7 +94,7 @@ class CameraService:
                     vcodec="libx264",
                     acodec="aac",
                     g=30,
-                    bufsize="1M",
+                    # bufsize="1M",
                     tune="zerolatency",
                 )
                 .global_args("-loglevel", "error")
@@ -182,3 +182,83 @@ class CameraService:
         except Exception as e:
             logger.error(f"Error removing camera {camera_id}: {e}")
             raise HTTPException(status_code=500, detail=str(e))
+
+    def start_live_stream(self, camera_id: str):
+        if camera_id not in self.cameras:
+            logger.error(f"Camera not found: {camera_id}")
+            raise HTTPException(status_code=404, detail="Camera not found")
+
+        camera = self.cameras[camera_id]
+
+        if camera.cap is not None:
+            logger.error(f"Camera is already live streaming: {camera_id}")
+            raise HTTPException(
+                status_code=400, detail="Camera is already live streaming"
+            )
+
+        try:
+            logger.info(f"Starting live stream for camera {camera_id}")
+            # OpenCVを使用してRTSPストリームから画像を取得する
+            cap = cv2.VideoCapture(camera.rtsp_url)
+            success, frame = cap.read()
+            if not success:
+                logger.error(f"Failed to start live stream for camera {camera_id}")
+                raise HTTPException(
+                    status_code=400, detail="Failed to start live stream"
+                )
+            camera.cap = cap
+            logger.info(f"Live stream started for camera {camera_id}")
+        except Exception as e:
+            logger.error(f"Error starting live stream for camera {camera_id}: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+
+    def get_live_stream(self, camera_id: str):
+        logger.info("api.services.camera_service.get_live_stream")
+        if camera_id not in self.cameras:
+            logger.error(f"Camera not found: {camera_id}")
+            raise HTTPException(status_code=404, detail="Camera not found")
+
+        try:
+            camera = self.cameras[camera_id]
+        except Exception as e:
+            logger.error(f"Error getting camera {camera_id}: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+        if camera.cap is None:
+            logger.error(f"Camera is not live streaming: {camera_id}")
+            raise HTTPException(status_code=400, detail="Camera is not live streaming")
+
+        logger.info(
+            f"api.services.camera_service.get_live_stream: camera_id: {camera_id}"
+        )
+
+        # RTSPストリームから画像を取得するジェネレーター関数
+        cap = camera.cap
+        while True:
+            success, frame = cap.read()
+            if not success:
+                # raise HTTPException(status_code=400, detail="Failed to get frame")
+                break
+            # 画像をJPEG形式にエンコード
+            ret, buffer = cv2.imencode(".jpg", frame)
+            # メモリ上の画像データをバイト列に変換
+            frame_bytes = buffer.tobytes()
+            yield (
+                b"--frame\r\n"
+                b"Content-Type: image/jpeg\r\n\r\n" + frame_bytes + b"\r\n"
+            )
+
+    async def stop_live_stream(self, camera_id: str):
+        if camera_id not in self.cameras:
+            raise HTTPException(status_code=404, detail="Camera not found")
+
+        camera = self.cameras[camera_id]
+        if camera.cap:
+            try:
+                # OpenCVのVideoCaptureを解放
+                camera.cap.release()
+                logger.info(f"Live stream stopped for camera {camera_id}")
+            except Exception as e:
+                logger.error(f"Error stopping live stream for camera {camera_id}: {e}")
+                raise HTTPException(status_code=500, detail=str(e))
+            finally:
+                camera.cap = None
