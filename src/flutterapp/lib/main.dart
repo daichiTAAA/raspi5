@@ -18,8 +18,8 @@ class MyApp extends StatelessWidget {
               rtspUrl: 'rtsp://192.168.0.101:8554/stream1',
             ),
         '/live': (context) => const LiveStreamPage(
-              cameraId: 'cam2',
-              rtspUrl: 'rtsp://192.168.0.101:8554/stream2',
+              cameraId: 'cam1',
+              rtspUrl: 'rtsp://192.168.0.101:8554/stream1',
             ),
       },
     );

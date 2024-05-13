@@ -86,7 +86,7 @@ class CameraService:
                 .output(
                     f"static/camera_{camera_id}.m3u8",
                     format="hls",
-                    hls_time=20,
+                    hls_time=2,
                     hls_list_size=10,
                     hls_segment_filename=f"static/camera_{camera_id}_%Y%m%d_%H%M%S.ts",
                     hls_segment_type="mpegts",

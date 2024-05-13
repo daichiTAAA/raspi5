@@ -1,7 +1,6 @@
-
 from fastapi import FastAPI
-from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 
 from api.routers import camera
 from api.setup_logger import setup_logger
@@ -11,6 +10,18 @@ logger, log_decorator = setup_logger(__name__)
 
 app = FastAPI()
 
+origins = [
+    "http://localhost",
+    "http://localhost:8100",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 try:
     app.mount("/static", StaticFiles(directory="static"), name="static")

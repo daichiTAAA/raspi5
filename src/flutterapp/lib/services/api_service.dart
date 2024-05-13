@@ -1,51 +1,109 @@
 import 'dart:convert';
+// import 'dart:io';
 import 'package:http/http.dart' as http;
-import '../models/hls_stream.dart';
+import 'package:sync_http/sync_http.dart';
+// import '../models/hls_stream.dart';
 
 class ApiService {
   static const String baseUrl = 'http://localhost:8100';
 
-  Future<void> addCamera(String cameraId, String rtspUrl) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/v1/cameras'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'camera_id': cameraId,
-        'rtsp_url': rtspUrl,
-      }),
-    );
+  // Future<void> addCamera(String cameraId, String rtspUrl) async {
+  //   final response = await http.post(
+  //     Uri.parse('$baseUrl/v1/cameras'),
+  //     headers: <String, String>{
+  //       'Content-Type': 'application/json; charset=UTF-8',
+  //     },
+  //     body: jsonEncode(<String, String>{
+  //       'camera_id': cameraId,
+  //       'rtsp_url': rtspUrl,
+  //     }),
+  //   );
+
+  //   if (response.statusCode != 200) {
+  //     throw Exception('Failed to add camera');
+  //   }
+  // }
+  void addCamera(String cameraId, String rtspUrl) {
+    final request = SyncHttpClient.postUrl(Uri.parse('$baseUrl/v1/cameras'));
+    request.headers.set('Content-Type', 'application/json; charset=UTF-8');
+    request.write(jsonEncode(<String, String>{
+      'camera_id': cameraId,
+      'rtsp_url': rtspUrl,
+    }));
+    final response = request.close();
 
     if (response.statusCode != 200) {
       throw Exception('Failed to add camera');
     }
   }
 
-  Future<void> startStream(String cameraId) async {
-    final response =
-        await http.post(Uri.parse('$baseUrl/v1/cameras/$cameraId/start'));
+  // Future<void> startStream(String cameraId) async {
+  //   final response =
+  //       await http.post(Uri.parse('$baseUrl/v1/cameras/$cameraId/start'));
+
+  //   if (response.statusCode != 200) {
+  //     throw Exception('Failed to start stream');
+  //   }
+  // }
+  void startStream(String cameraId) {
+    final request = SyncHttpClient.postUrl(
+        Uri.parse('$baseUrl/v1/cameras/$cameraId/start'));
+    request.headers.set('Content-Type', 'application/json; charset=UTF-8');
+    request.write(jsonEncode(<String, String>{
+      'camera_id': cameraId,
+    }));
+    final response = request.close();
 
     if (response.statusCode != 200) {
       throw Exception('Failed to start stream');
     }
   }
 
-  Future<HlsStream> getStream(String cameraId) async {
-    final response =
-        await http.get(Uri.parse('$baseUrl/v1/cameras/$cameraId/stream'));
+  // Future<HlsStream> getStream(String cameraId) async {
+  //   final response =
+  //       await http.get(Uri.parse('$baseUrl/v1/cameras/$cameraId/stream'));
 
-    if (response.statusCode == 200) {
-      final jsonResponse = json.decode(response.body);
-      return HlsStream.fromJson(jsonResponse);
-    } else {
-      throw Exception('Failed to load HLS stream');
+  //   if (response.statusCode == 200) {
+  //     final jsonResponse = json.decode(response.body);
+  //     return HlsStream.fromJson(jsonResponse);
+  //   } else {
+  //     throw Exception('Failed to get hls m3u8 url');
+  //   }
+  // }
+
+  String getStreamUrl(String cameraId) {
+    final url = Uri.parse('$baseUrl/v1/cameras/$cameraId/stream')
+        .replace(queryParameters: {'camera_id': cameraId});
+    final request = SyncHttpClient.getUrl(url);
+    request.headers.set('Content-Type', 'application/json; charset=UTF-8');
+
+    final response = request.close();
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to get hls m3u8 url');
     }
+
+    final jsonResponse = json.decode(response.body.toString());
+    return jsonResponse['url'];
   }
 
-  Future<void> stopStream(String cameraId) async {
-    final response =
-        await http.post(Uri.parse('$baseUrl/v1/cameras/$cameraId/stop'));
+  // Future<void> stopStream(String cameraId) async {
+  //   final response =
+  //       await http.post(Uri.parse('$baseUrl/v1/cameras/$cameraId/stop'));
+
+  //   if (response.statusCode != 200) {
+  //     throw Exception('Failed to stop stream');
+  //   }
+  // }
+
+  void stopStream(String cameraId) {
+    final request =
+        SyncHttpClient.postUrl(Uri.parse('$baseUrl/v1/cameras/$cameraId/stop'));
+    request.headers.set('Content-Type', 'application/json; charset=UTF-8');
+    request.write(jsonEncode(<String, String>{
+      'camera_id': cameraId,
+    }));
+    final response = request.close();
 
     if (response.statusCode != 200) {
       throw Exception('Failed to stop stream');

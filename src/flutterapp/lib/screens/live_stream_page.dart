@@ -67,9 +67,103 @@
 //   }
 // }
 
-import 'dart:async';
+// import 'dart:async';
+// import 'package:flutter/material.dart';
+// import '../services/api_service.dart';
+
+// class LiveStreamPage extends StatefulWidget {
+//   final String cameraId;
+//   final String rtspUrl;
+
+//   const LiveStreamPage(
+//       {super.key, required this.cameraId, required this.rtspUrl});
+
+//   @override
+//   LiveStreamPageState createState() => LiveStreamPageState();
+// }
+
+// class LiveStreamPageState extends State<LiveStreamPage> {
+//   final ApiService _apiService = ApiService();
+//   String? _currentImageUrl;
+//   String? _nextImageUrl;
+
+//   Timer? _imageTimer;
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     _initializeStream();
+//   }
+
+//   Future<void> _initializeStream() async {
+//     await _apiService.addCamera(widget.cameraId, widget.rtspUrl);
+//     await _apiService.startLiveStream(widget.cameraId);
+//     _currentImageUrl = await _apiService.getLiveStreamUrl(widget.cameraId);
+//     _startImageTimer();
+//   }
+
+//   void _startImageTimer() {
+//     _imageTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+//       _nextImageUrl = await _apiService.getLiveStreamUrl(widget.cameraId);
+//       setState(() {
+//         // _nextImageUrlがnullの場合は_currentImageUrlを表示する
+//         if (_nextImageUrl == null) {
+//           _nextImageUrl = _currentImageUrl;
+//         } else {
+//           _currentImageUrl = _nextImageUrl;
+//         }
+//       });
+//     });
+//   }
+
+//   @override
+//   void dispose() {
+//     _imageTimer?.cancel();
+//     super.dispose();
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(title: const Text('Live Stream')),
+//       body: Center(
+//         child: _currentImageUrl == null
+//             ? const CircularProgressIndicator()
+//             : AnimatedCrossFade(
+//                 firstChild: Image.network(_currentImageUrl!),
+//                 secondChild: _nextImageUrl == null
+//                     ? Container()
+//                     : Image.network(_nextImageUrl!),
+//                 crossFadeState: _currentImageUrl == _nextImageUrl
+//                     ? CrossFadeState.showFirst
+//                     : CrossFadeState.showSecond,
+//                 duration: const Duration(seconds: 1),
+//               ),
+//       ),
+//       bottomNavigationBar: BottomAppBar(
+//         child: Row(
+//           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//           children: [
+//             Tooltip(
+//               message: '過去分再生',
+//               child: IconButton(
+//                 icon: const Icon(Icons.live_tv),
+//                 onPressed: () {
+//                   Navigator.pushNamed(context, '/');
+//                 },
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+// 参考：https://pub.dev/packages/flutter_vlc_player
+
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
+import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 
 class LiveStreamPage extends StatefulWidget {
   final String cameraId;
@@ -83,62 +177,40 @@ class LiveStreamPage extends StatefulWidget {
 }
 
 class LiveStreamPageState extends State<LiveStreamPage> {
-  final ApiService _apiService = ApiService();
-  String? _currentImageUrl;
-  String? _nextImageUrl;
-
-  Timer? _imageTimer;
+  VlcPlayerController? _videoPlayerController;
 
   @override
   void initState() {
     super.initState();
-    _initializeStream();
-  }
 
-  Future<void> _initializeStream() async {
-    await _apiService.addCamera(widget.cameraId, widget.rtspUrl);
-    await _apiService.startLiveStream(widget.cameraId);
-    _currentImageUrl = await _apiService.getLiveStreamUrl(widget.cameraId);
-    _startImageTimer();
-  }
-
-  void _startImageTimer() {
-    _imageTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
-      _nextImageUrl = await _apiService.getLiveStreamUrl(widget.cameraId);
-      setState(() {
-        // _nextImageUrlがnullの場合は_currentImageUrlを表示する
-        if (_nextImageUrl == null) {
-          _nextImageUrl = _currentImageUrl;
-        } else {
-          _currentImageUrl = _nextImageUrl;
-        }
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _imageTimer?.cancel();
-    super.dispose();
+    _videoPlayerController = VlcPlayerController.network(
+      widget.rtspUrl,
+      hwAcc: HwAcc.full,
+      autoPlay: true,
+      options: VlcPlayerOptions(
+        advanced: VlcAdvancedOptions([
+          VlcAdvancedOptions.networkCaching(0),
+          VlcAdvancedOptions.clockJitter(0),
+          VlcAdvancedOptions.clockSynchronization(0),
+        ]),
+        http: VlcHttpOptions([
+          VlcHttpOptions.httpReconnect(true),
+        ]),
+        rtp: VlcRtpOptions([
+          VlcRtpOptions.rtpOverRtsp(true),
+        ]),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Live Stream')),
       body: Center(
-        child: _currentImageUrl == null
-            ? const CircularProgressIndicator()
-            : AnimatedCrossFade(
-                firstChild: Image.network(_currentImageUrl!),
-                secondChild: _nextImageUrl == null
-                    ? Container()
-                    : Image.network(_nextImageUrl!),
-                crossFadeState: _currentImageUrl == _nextImageUrl
-                    ? CrossFadeState.showFirst
-                    : CrossFadeState.showSecond,
-                duration: const Duration(seconds: 1),
-              ),
+        child: VlcPlayer(
+          controller: _videoPlayerController!,
+          aspectRatio: 16 / 9,
+        ),
       ),
       bottomNavigationBar: BottomAppBar(
         child: Row(
