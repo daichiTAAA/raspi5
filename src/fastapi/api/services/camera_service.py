@@ -3,8 +3,8 @@ import os
 import signal
 import time
 import subprocess
-import json
-from datetime import datetime, timedelta
+import concurrent.futures
+
 
 import cv2
 from fastapi import HTTPException, Depends
@@ -52,7 +52,7 @@ class CameraService:
                 logger.error(f"Error stopping FFmpeg process: {e}")
                 pass
 
-    async def add_camera(self, camera_id: str, rtsp_url: str):
+    def add_camera(self, camera_id: str, rtsp_url: str):
         logger.info(
             f"api.services.camera_service.add_camera: camera_id: {camera_id}, rtsp_url: {rtsp_url}"
         )
@@ -61,73 +61,127 @@ class CameraService:
             raise HTTPException(status_code=400, detail="Camera already exists")
         try:
             self.cameras[camera_id] = Camera(
-                id=camera_id, rtsp_url=rtsp_url, process=None, cap=None
+                id=camera_id,
+                rtsp_url=rtsp_url,
+                process=None,
+                cap=None,
+                m3u8_file_path=None,
+                last_access_time=None,
             )
             logger.info(f"Camera {camera_id} added successfully")
         except Exception as e:
             logger.error(f"Error adding camera {camera_id}: {e}")
             raise HTTPException(status_code=500, detail=str(e))
 
-    def start_stream(self, camera_id: str):
+    def remove_hls_files(self, camera_id: str):
         if camera_id not in self.cameras:
             logger.error(f"Camera not found: {camera_id}")
             raise HTTPException(status_code=404, detail="Camera not found")
 
-        camera = self.cameras[camera_id]
+        camera: Camera = self.cameras[camera_id]
+
+        if camera.m3u8_file_path is None:
+            logger.warning(f"m3u8 file not found for camera {camera_id}")
+            return {
+                "message": f"m3u8 file path is not registered for camera {camera_id}"
+            }
+
+        # m3u8ファイルがない場合は警告を返す
+        if not os.path.exists(camera.m3u8_file_path):
+            logger.warning(f"m3u8 file not found for camera {camera_id}")
+            return {"message": f"m3u8 file not found for camera {camera_id}"}
+
+        try:
+            output_dir = os.path.abspath(f"static/{camera_id}")
+            for file in os.listdir(output_dir):
+                if file.endswith(".ts") or file.endswith(".m3u8"):
+                    os.remove(os.path.join(output_dir, file))
+            logger.info(f"Hls files removed for camera {camera_id}")
+            return {"message": f"Hls files removed for camera {camera_id}"}
+        except Exception as e:
+            logger.error(f"Error removing hls files for camera {camera_id}: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+
+    def start_hls_stream(self, camera_id: str, timeout: int):
+        if camera_id not in self.cameras:
+            logger.error(f"Camera not found: {camera_id}")
+            raise HTTPException(status_code=404, detail="Camera not found")
+
+        camera: Camera = self.cameras[camera_id]
 
         if camera.process is not None:
             logger.error(f"Camera is already streaming: {camera_id}")
             raise HTTPException(status_code=400, detail="Camera is already streaming")
+
+        m3u8_file_path = f"static/{camera_id}/camera_{camera_id}.m3u8"
+        camera.m3u8_file_path = m3u8_file_path
+        self.remove_hls_files(camera_id)
+
+        output_dir = os.path.abspath(f"static/{camera_id}")
+        os.makedirs(output_dir, exist_ok=True)
 
         try:
             logger.info(f"Starting stream for camera {camera_id}")
             process = (
                 ffmpeg.input(camera.rtsp_url, rtsp_transport="tcp")
                 .output(
-                    f"static/camera_{camera_id}.m3u8",
+                    os.path.join(output_dir, f"camera_{camera_id}.m3u8"),
                     format="hls",
                     hls_time=2,
                     hls_list_size=10,
-                    hls_segment_filename=f"static/camera_{camera_id}_%Y%m%d_%H%M%S.ts",
+                    hls_segment_filename=os.path.join(
+                        output_dir, f"camera_{camera_id}_%Y%m%d_%H%M%S.ts"
+                    ),
                     hls_segment_type="mpegts",
                     strftime=1,
                     vcodec="libx264",
                     acodec="aac",
                     g=30,
-                    # bufsize="1M",
                     tune="zerolatency",
                 )
                 .global_args("-loglevel", "error")
                 .run_async(pipe_stdin=True, pipe_stderr=True)
             )
             camera.process = process
-            logger.info(f"Stream started for camera {camera_id}")
 
             # .m3u8ファイルの作成を待機するバックグラウンドタスクを開始
             logger.info(
                 f"Starting background task to wait for m3u8 file for camera {camera_id}"
             )
-            self.wait_for_m3u8_file(camera_id)
+            self.wait_for_m3u8_file(camera_id, m3u8_file_path)
+            logger.info(f"m3u8 file created for camera {camera_id}")
+            logger.info(f"Stream started for camera {camera_id}")
+            # タイムアウト後にストリームを停止するバックグラウンドタスクを開始
+            # 別スレッドで非同期実行する
+            executor = concurrent.futures.ThreadPoolExecutor()
+            executor.submit(self.stop_hls_stream_after_timeout, camera_id, timeout)
         except Exception as e:
             logger.error(f"Error starting stream for camera {camera_id}: {e}")
             raise HTTPException(status_code=500, detail=str(e))
 
-    def wait_for_m3u8_file(self, camera_id: str):
+    def wait_for_m3u8_file(self, camera_id: str, m3u8_file_path: str):
         logger.info(
             f"api.services.camera_service.wait_for_m3u8_file: camera_id: {camera_id}"
         )
-        m3u8_file = f"static/camera_{camera_id}.m3u8"
-        while not os.path.exists(m3u8_file):
+        i: int = 0
+        while not os.path.exists(m3u8_file_path):
             time.sleep(1)
+            i += 1
+            if i > 120:
+                logger.error(f"Timeout waiting for m3u8 file for camera {camera_id}")
+                self.stop_hls_stream(camera_id)
+                raise HTTPException(
+                    status_code=500, detail="Timeout waiting for m3u8 file"
+                )
         logger.info(f"m3u8 file created for camera {camera_id}")
 
-    def get_stream(self, camera_id: str):
+    def get_hls_stream_url(self, camera_id: str):
         logger.info("api.services.camera_service.get_stream")
         if camera_id not in self.cameras:
             logger.error(f"Camera not found: {camera_id}")
             raise HTTPException(status_code=404, detail="Camera not found")
 
-        camera = self.cameras[camera_id]
+        camera: Camera = self.cameras[camera_id]
         if camera.process is None:
             logger.error(f"Camera is not streaming: {camera_id}")
             raise HTTPException(status_code=400, detail="Camera is not streaming")
@@ -135,10 +189,57 @@ class CameraService:
         logger.info(f"api.services.camera_service.get_stream: camera_id: {camera_id}")
         return {
             "camera_id": camera_id,
-            "url": f"http://localhost:8100/static/camera_{camera_id}.m3u8",
+            "url": camera.m3u8_file_path,
         }
 
-    async def stop_stream(self, camera_id: str):
+    # def get_hls_stream(self, camera_id: str, timeout: int):
+    #     if camera_id not in self.cameras:
+    #         logger.error(f"Camera not found: {camera_id}")
+    #         raise HTTPException(status_code=404, detail="Camera not found")
+
+    #     camera: Camera = self.cameras[camera_id]
+
+    #     # 最終アクセス時間を更新
+    #     camera.last_access_time = time.time()
+
+    #     file_like = open(camera.m3u8_file_path, mode="rb")
+
+    #     # 一定時間アクセスがない場合にffmpegプロセスを終了する処理を追加
+    #     self.stop_hls_stream_after_timeout(
+    #         camera_id, camera.last_access_time, timeout
+    #     )
+
+    #     return StreamingResponse(file_like, media_type="application/x-mpegURL")
+
+    def stop_hls_stream_after_timeout(self, camera_id: str, timeout: int):
+        if camera_id not in self.cameras:
+            logger.error(f"Camera not found: {camera_id}")
+            raise HTTPException(status_code=404, detail="Camera not found")
+
+        camera: Camera = self.cameras[camera_id]
+
+        camera.last_access_time = time.time()
+
+        # 最終アクセス時間が指定した時間よりも古い場合はストリームを停止する
+        while True:
+            if time.time() - camera.last_access_time > timeout:
+                self.stop_hls_stream(camera_id)
+                break
+            time.sleep(1)
+
+    def keep_hls_stream(self, camera_id: str):
+        logger.info("api.services.camera_service.keep_hls_stream")
+        if camera_id not in self.cameras:
+            logger.error(f"Camera not found: {camera_id}")
+            raise HTTPException(status_code=404, detail="Camera not found")
+
+        camera: Camera = self.cameras[camera_id]
+
+        # 最終アクセス時間を更新
+        camera.last_access_time = time.time()
+        logger.info(f"Stream kept for camera {camera_id}")
+
+    def stop_hls_stream(self, camera_id: str):
         if camera_id not in self.cameras:
             raise HTTPException(status_code=404, detail="Camera not found")
 
@@ -170,7 +271,7 @@ class CameraService:
             logger.info(f"Stopping stream for camera {camera_id}")
             try:
                 logger.info(f"Stopping stream for camera {camera_id}")
-                await self.stop_stream(camera_id)
+                self.stop_hls_stream(camera_id)
                 logger.info(f"Stream stopped for camera {camera_id}")
             except Exception as e:
                 logger.error(f"Error stopping stream for camera {camera_id}: {e}")

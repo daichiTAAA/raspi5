@@ -291,7 +291,7 @@ class VideoPlayerScreen extends StatefulWidget {
 
 class VideoPlayerScreenState extends State<VideoPlayerScreen> {
   // with WidgetsBindingObserver {
-  late final AppLifecycleListener _listener;
+  // late final AppLifecycleListener _listener;
   late VideoPlayerController _controller;
   late Future<void> _initializeVideoPlayerFuture;
   final ApiService _apiService = ApiService();
@@ -302,9 +302,9 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> {
     super.initState();
     // WidgetsBinding.instance.addObserver(this);
     // Initialize the AppLifecycleListener class and pass callbacks
-    _listener = AppLifecycleListener(
-      onStateChange: _onStateChanged,
-    );
+    // _listener = AppLifecycleListener(
+    //   onStateChange: _onStateChanged,
+    // );
     _initializePlayer();
     // Create and store the VideoPlayerController. The VideoPlayerController
     // offers several different constructors to play videos from assets, files,
@@ -320,20 +320,21 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   void _initializePlayer() {
     _apiService.addCamera(widget.cameraId, widget.rtspUrl);
-    _apiService.startStream(widget.cameraId);
-
-    videoUrl = _apiService.getStreamUrl(widget.cameraId);
+    _apiService.startHlsStream(widget.cameraId);
+    Timer.periodic(const Duration(seconds: 5),
+        (Timer t) => _apiService.keepHlsStreamAlive(widget.cameraId));
+    videoUrl = _apiService.getHlsStreamUrl(widget.cameraId);
   }
 
-  void _stopStream() {
-    _apiService.stopStream(widget.cameraId);
-  }
+  // void _stopStream() {
+  //   _apiService.stopStream(widget.cameraId);
+  // }
 
   @override
   void dispose() {
     // WidgetsBinding.instance.removeObserver(this);
     // Do not forget to dispose the listener
-    _listener.dispose();
+    // _listener.dispose();
     // Ensure disposing of the VideoPlayerController to free up resources.
     _controller.dispose();
     super.dispose();
@@ -349,35 +350,35 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> {
   // }
 
   // Listen to the app lifecycle state changes
-  void _onStateChanged(AppLifecycleState state) {
-    switch (state) {
-      case AppLifecycleState.detached:
-        _onDetached();
-      case AppLifecycleState.resumed:
-        _onResumed();
-      case AppLifecycleState.inactive:
-        _onInactive();
-      case AppLifecycleState.hidden:
-        _onHidden();
-      case AppLifecycleState.paused:
-        _onPaused();
-    }
-  }
+  // void _onStateChanged(AppLifecycleState state) {
+  //   switch (state) {
+  //     case AppLifecycleState.detached:
+  //       _onDetached();
+  //     case AppLifecycleState.resumed:
+  //       _onResumed();
+  //     case AppLifecycleState.inactive:
+  //       _onInactive();
+  //     case AppLifecycleState.hidden:
+  //       _onHidden();
+  //     case AppLifecycleState.paused:
+  //       _onPaused();
+  //   }
+  // }
 
-  void _onDetached() => {
-        print('detached'),
-        _stopStream(),
-      };
+  // void _onDetached() => {
+  //       print('detached'),
+  //       _stopStream(),
+  //     };
 
-  void _onResumed() => print('resumed');
+  // void _onResumed() => print('resumed');
 
-  void _onInactive() => print('inactive');
+  // void _onInactive() => print('inactive');
 
-  void _onHidden() => print('hidden');
+  // void _onHidden() => print('hidden');
 
-  void _onPaused() => {
-        print('paused'),
-      };
+  // void _onPaused() => {
+  //       print('paused'),
+  //     };
 
   @override
   Widget build(BuildContext context) {

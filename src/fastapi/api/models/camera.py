@@ -1,6 +1,5 @@
 from pydantic import BaseModel, ConfigDict, ValidationError
 from typing import Any
-import ffmpeg
 
 
 class Camera(BaseModel):
@@ -10,3 +9,5 @@ class Camera(BaseModel):
     rtsp_url: str
     process: Any | None
     cap: Any | None
+    m3u8_file_path: str | None
+    last_access_time: float | None
