@@ -314,6 +314,12 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> {
     );
     // Initialize the controller and store the Future for later use.
     _initializeVideoPlayerFuture = _controller.initialize();
+    _initializeVideoPlayerFuture.then((_) {
+      _controller.play();
+      if (_controller.value.isPlaying) {
+        setState(() {}); // アイコンを更新
+      }
+    });
     // Use the controller to loop the video.
     _controller.setLooping(true);
   }
@@ -397,7 +403,18 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> {
             return AspectRatio(
               aspectRatio: _controller.value.aspectRatio,
               // Use the VideoPlayer widget to display the video.
-              child: VideoPlayer(_controller),
+              child: Stack(
+                children: [
+                  VideoPlayer(_controller),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: VideoProgressIndicator(
+                      _controller,
+                      allowScrubbing: true, // スライドバーでの再生位置変更を許可
+                    ),
+                  ),
+                ],
+              ),
             );
           } else {
             // If the VideoPlayerController is still initializing, show a
