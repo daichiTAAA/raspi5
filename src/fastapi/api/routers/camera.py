@@ -13,7 +13,7 @@ router_v1 = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-time_out: int = 10
+time_out: int = 60
 
 
 @router_v1.post("")

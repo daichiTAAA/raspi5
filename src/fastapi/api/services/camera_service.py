@@ -127,8 +127,8 @@ class CameraService:
                 .output(
                     os.path.join(output_dir, f"camera_{camera_id}.m3u8"),
                     format="hls",
-                    hls_time=2,
-                    hls_list_size=10,
+                    hls_time=1,
+                    hls_list_size=0,
                     hls_segment_filename=os.path.join(
                         output_dir, f"camera_{camera_id}_%Y%m%d_%H%M%S.ts"
                     ),
