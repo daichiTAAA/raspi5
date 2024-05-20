@@ -239,7 +239,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Butterfly Video'),
+        title: const Text('HLS Video'),
       ),
       // Use a FutureBuilder to display a loading spinner while waiting for the
       // VideoPlayerController to finish initializing.
@@ -350,7 +350,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> {
               child: IconButton(
                 icon: const Icon(Icons.live_tv),
                 onPressed: () {
-                  Navigator.pushNamed(context, '/live');
+                  Navigator.pushNamed(context, '/');
                 },
               ),
             ),
