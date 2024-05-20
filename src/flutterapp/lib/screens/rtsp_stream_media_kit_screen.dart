@@ -3,17 +3,18 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 // import 'package:media_kit_libs_video/media_kit_libs_video.dart';
 
-class RTSPPlayer extends StatefulWidget {
+class RtspMediaKitPlayer extends StatefulWidget {
   final String cameraId;
   final String rtspUrl;
 
-  const RTSPPlayer({super.key, required this.cameraId, required this.rtspUrl});
+  const RtspMediaKitPlayer(
+      {super.key, required this.cameraId, required this.rtspUrl});
 
   @override
-  RTSPPlayerState createState() => RTSPPlayerState();
+  RtspMediaKitPlayerState createState() => RtspMediaKitPlayerState();
 }
 
-class RTSPPlayerState extends State<RTSPPlayer> {
+class RtspMediaKitPlayerState extends State<RtspMediaKitPlayer> {
   late final Player _player;
   late final VideoController _controller;
 
