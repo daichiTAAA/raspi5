@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
 
-class CameraAddRequest(BaseModel):
+class CameraCreate(BaseModel):
     camera_id: str
     rtsp_url: str

@@ -1,11 +1,20 @@
-from pydantic import BaseModel, ConfigDict, ValidationError
 from typing import Any
 
+from sqlalchemy import Column, String
+from sqlalchemy.ext.declarative import declarative_base
+from pydantic import BaseModel
 
-class Camera(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+from api.db import Base
 
-    id: str
+
+class Camera(Base):
+    __tablename__ = "cameras"
+    camera_id = Column(String, primary_key=True)
+    rtsp_url = Column(String)
+
+
+class CameraInUse(BaseModel):
+    camera_id: str
     rtsp_url: str
     process: Any | None
     cap: Any | None

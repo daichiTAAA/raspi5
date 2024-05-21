@@ -11,7 +11,7 @@ from fastapi import HTTPException, Depends
 import ffmpeg
 import psutil
 
-from api.models.camera import Camera
+import api.models as models
 from api.setup_logger import setup_logger
 
 logger, log_decorator = setup_logger(__name__)
@@ -60,8 +60,8 @@ class CameraService:
             logger.error(f"Camera already exists: {camera_id}")
             raise HTTPException(status_code=400, detail="Camera already exists")
         try:
-            self.cameras[camera_id] = Camera(
-                id=camera_id,
+            self.cameras[camera_id] = models.CameraInUse(
+                camera_id=camera_id,
                 rtsp_url=rtsp_url,
                 process=None,
                 cap=None,
@@ -78,7 +78,7 @@ class CameraService:
             logger.error(f"Camera not found: {camera_id}")
             raise HTTPException(status_code=404, detail="Camera not found")
 
-        camera: Camera = self.cameras[camera_id]
+        camera: models.CameraInUse = self.cameras[camera_id]
 
         if camera.m3u8_file_path is None:
             logger.warning(f"m3u8 file not found for camera {camera_id}")
@@ -107,7 +107,7 @@ class CameraService:
             logger.error(f"Camera not found: {camera_id}")
             raise HTTPException(status_code=404, detail="Camera not found")
 
-        camera: Camera = self.cameras[camera_id]
+        camera: models.CameraInUse = self.cameras[camera_id]
 
         if camera.process is not None:
             logger.error(f"Camera is already streaming: {camera_id}")
@@ -181,7 +181,7 @@ class CameraService:
             logger.error(f"Camera not found: {camera_id}")
             raise HTTPException(status_code=404, detail="Camera not found")
 
-        camera: Camera = self.cameras[camera_id]
+        camera: models.CameraInUse = self.cameras[camera_id]
         if camera.process is None:
             logger.error(f"Camera is not streaming: {camera_id}")
             raise HTTPException(status_code=400, detail="Camera is not streaming")
@@ -216,7 +216,7 @@ class CameraService:
             logger.error(f"Camera not found: {camera_id}")
             raise HTTPException(status_code=404, detail="Camera not found")
 
-        camera: Camera = self.cameras[camera_id]
+        camera: models.CameraInUse = self.cameras[camera_id]
 
         camera.last_access_time = time.time()
 
@@ -233,7 +233,7 @@ class CameraService:
             logger.error(f"Camera not found: {camera_id}")
             raise HTTPException(status_code=404, detail="Camera not found")
 
-        camera: Camera = self.cameras[camera_id]
+        camera: models.CameraInUse = self.cameras[camera_id]
 
         # 最終アクセス時間を更新
         camera.last_access_time = time.time()

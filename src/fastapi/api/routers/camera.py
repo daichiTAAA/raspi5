@@ -1,9 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from api.db import get_db
 from api.services.camera_service import CameraService
-from api.schemas.camera import CameraAddRequest
+from api.schemas.camera import CameraCreate
 from api.setup_logger import setup_logger
+import api.cruds as cruds
+import api.models as models
 
 logger, log_decorator = setup_logger(__name__)
 
@@ -17,24 +22,32 @@ time_out: int = 60
 
 
 @router_v1.post("")
-def add_camera(
-    camera_request: CameraAddRequest, camera_service: CameraService = Depends()
+async def create_camera(
+    camera: CameraCreate,
+    camera_service: CameraService = Depends(),
+    db: AsyncSession = Depends(get_db),
 ):
     try:
-        camera_service.add_camera(camera_request.camera_id, camera_request.rtsp_url)
-        logger.info(f"Camera {camera_request.camera_id} added successfully")
-        return {"message": f"Camera {camera_request.camera_id} added successfully"}
+        result = await cruds.get_camera_by_camera_id(db, camera.camera_id)
+        if result is not None:
+            logger.error(f"Camera {camera.camera_id} already registered")
+            raise HTTPException(status_code=400, detail="Camera already registered")
+        created_camera = await cruds.create_camera(db, camera)
+        logger.info(f"Created Camera: {created_camera}")
+        camera_service.add_camera(created_camera.camera_id, created_camera.rtsp_url)
+        logger.info(f"Camera {created_camera.camera_id} added successfully")
+        return created_camera
     except HTTPException as e:
-        if e.status_code == 400 and e.detail == "Camera already exists":
+        if e.status_code == 400 and e.detail == "Camera already registered":
             logger.warning(
-                f"Warnig error adding camera {camera_request.camera_id} but ignore it: {e}"
+                f"Warnig error adding camera {camera.camera_id} but ignore it: {e}"
             )
             return {"error": str(e)}
         else:
-            logger.error(f"Error adding camera {camera_request.camera_id}: {e}")
+            logger.error(f"Error adding camera {camera.camera_id}: {e}")
             raise e
     except Exception as e:
-        logger.error(f"Error adding camera {camera_request.camera_id}: {e}")
+        logger.error(f"Error adding camera {camera.camera_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
