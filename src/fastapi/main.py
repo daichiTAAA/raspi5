@@ -1,16 +1,9 @@
-# {
-#   "camera_id": "cam1",
-#   "rtsp_url": "rtsp://192.168.0.101:8554/stream1"
-# }
-
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Depends
 from fastapi.staticfiles import StaticFiles
 
-# from fastapi.middleware.cors import CORSMiddleware
-
-from api.routers import camera
+from api.routers import camera, camera_instance, hls, rtsp
 from api.setup_logger import setup_logger
 from api.db import async_engine, Base
 
@@ -35,19 +28,6 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 port: int = 8100
 
-# origins = [
-#     "http://localhost",
-#     "http://localhost:8100",
-# ]
-
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=origins,
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
-
 try:
     app.mount("/static", StaticFiles(directory="static"), name="static")
     logger.info("Mounted static directory")
@@ -56,6 +36,9 @@ except Exception as e:
 
 
 app.include_router(camera.router_v1, prefix="/v1")
+app.include_router(camera_instance.router_v1, prefix="/v1")
+app.include_router(hls.router_v1, prefix="/v1")
+app.include_router(rtsp.router_v1, prefix="/v1")
 
 
 @app.get("/")

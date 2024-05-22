@@ -1,30 +1,24 @@
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import StreamingResponse
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db import get_db
-from api.services.camera_service import CameraService
 from api.schemas.camera import CameraCreate
 from api.setup_logger import setup_logger
 import api.cruds as cruds
-import api.models as models
 
 logger, log_decorator = setup_logger(__name__)
 
 router_v1 = APIRouter(
     prefix="/cameras",
-    tags=["camera stream"],
+    tags=["Camera DB operations"],
     responses={404: {"description": "Not found"}},
 )
-
-time_out: int = 60
 
 
 @router_v1.post("")
 async def create_camera(
     camera: CameraCreate,
-    camera_service: CameraService = Depends(),
     db: AsyncSession = Depends(get_db),
 ):
     try:
@@ -34,8 +28,6 @@ async def create_camera(
             raise HTTPException(status_code=400, detail="Camera already registered")
         created_camera = await cruds.create_camera(db, camera)
         logger.info(f"Created Camera: {created_camera}")
-        camera_service.add_camera(created_camera.camera_id, created_camera.rtsp_url)
-        logger.info(f"Camera {created_camera.camera_id} added successfully")
         return created_camera
     except HTTPException as e:
         if e.status_code == 400 and e.detail == "Camera already registered":
@@ -51,171 +43,87 @@ async def create_camera(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router_v1.delete("/{camera_id}/hlsfiles")
-def remove_hls_files(camera_id: str, camera_service: CameraService = Depends()):
+@router_v1.get("")
+async def get_cameras(db: AsyncSession = Depends(get_db)):
     try:
-        camera_service.remove_hls_files(camera_id)
-        logger.info(f"Hls files removed for camera {camera_id}")
-        return {"message": f"Hls files removed for camera {camera_id}"}
+        cameras = await cruds.get_cameras(db)
+        logger.info(f"Cameras retrieved successfully")
+        return cameras
     except HTTPException as e:
-        logger.error(f"Error removing hls files for camera {camera_id}: {e}")
+        logger.error(f"Error retrieving cameras: {e}")
         raise e
     except Exception as e:
-        logger.error(f"Error removing hls files for camera {camera_id}: {e}")
+        logger.error(f"Error retrieving cameras: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router_v1.post("/{camera_id}/hlsstart")
-def start_hls_stream(
+@router_v1.get("/{camera_id}")
+async def get_camera_by_camera_id(camera_id: str, db: AsyncSession = Depends(get_db)):
+    try:
+        camera = await cruds.get_camera_by_camera_id(db, camera_id)
+        if camera is None:
+            logger.error(f"Camera {camera_id} not found")
+            raise HTTPException(status_code=404, detail="Camera not found")
+        logger.info(f"Camera {camera_id} retrieved successfully")
+        return camera
+    except HTTPException as e:
+        logger.error(f"Error retrieving camera {camera_id}: {e}")
+        raise e
+    except Exception as e:
+        logger.error(f"Error retrieving camera {camera_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router_v1.put("/{camera_id}")
+async def update_camera(
     camera_id: str,
-    camera_service: CameraService = Depends(),
+    camera: CameraCreate,
+    db: AsyncSession = Depends(get_db),
 ):
     try:
-        logger.info(f"Starting stream for camera {camera_id}")
-        camera_service.start_hls_stream(camera_id, time_out)
-        logger.info(f"Stream started for camera {camera_id}")
-        return {"message": f"Stream started for camera {camera_id}"}
+        result = await cruds.get_camera_by_camera_id(db, camera_id)
+        if result is None:
+            logger.error(f"Camera {camera_id} not found")
+            raise HTTPException(status_code=404, detail="Camera not found")
+        updated_camera = await cruds.update_camera(db, camera_id, camera)
+        if updated_camera is None:
+            logger.error(f"Error updating camera {camera_id}")
+            raise HTTPException(status_code=500, detail="Error updating camera")
+        logger.info(f"Updated Camera: {updated_camera}")
+        return updated_camera
     except HTTPException as e:
-        if e.status_code == 400 and e.detail == "Camera is already streaming":
-            logger.warning(
-                f"Warnig error starting stream {camera_id} but ignore it: {e}"
+        if (
+            e.status_code == 409
+            and e.detail == f"Camera with new camera_id already exists"
+        ):
+            logger.warning(f"Conflict error updating camera {camera_id}: {e}")
+            raise HTTPException(
+                status_code=409,
+                detail=f"Camera with new camera_id already exists",
             )
-            return {"error": str(e)}
-        else:
-            logger.error(f"Error starting stream {camera_id}: {e}")
-            raise e
-    except Exception as e:
-        logger.error(f"Error starting stream for camera {camera_id}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-# @router_v1.get("/{camera_id}/hlsstream")
-# async def get_hls_stream(
-#     camera_id: str,
-#     camera_service: CameraService = Depends(),
-# ):
-#     try:
-#         stream = await camera_service.get_hls_stream(
-#             camera_id,
-#             timeout=time_out,
-#         )
-#         logger.info(f"Stream retrieved for camera {camera_id}")
-#         return stream
-#     except HTTPException as e:
-#         logger.error(f"Error retrieving stream for camera {camera_id}: {e}")
-#         raise e
-#     except Exception as e:
-#         logger.error(f"Error retrieving stream for camera {camera_id}: {e}")
-#         raise HTTPException(status_code=500, detail=str(e))
-
-
-@router_v1.get("/{camera_id}/hlsurl")
-def get_hls_stream_url(camera_id: str, camera_service: CameraService = Depends()):
-    try:
-        hls_stream_url = camera_service.get_hls_stream_url(camera_id)
-        logger.info(f"Hls stream url retrieved for camera {camera_id}")
-        return hls_stream_url
-    except HTTPException as e:
-        logger.error(f"Error retrieving hls stream url for camera {camera_id}: {e}")
+        logger.error(f"Error updating camera {camera_id}: {e}")
         raise e
     except Exception as e:
-        logger.error(f"Error retrieving hls stream url for camera {camera_id}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router_v1.post("/{camera_id}/hlskeepalive")
-def keep_hls_stream(
-    camera_id: str,
-    camera_service: CameraService = Depends(),
-):
-    try:
-        camera_service.keep_hls_stream(camera_id)
-        logger.info(f"Stream kept for camera {camera_id}")
-        return {"message": f"Stream kept for camera {camera_id}"}
-    except HTTPException as e:
-        logger.error(f"Error keeping stream for camera {camera_id}: {e}")
-        raise e
-    except Exception as e:
-        logger.error(f"Error keeping stream for camera {camera_id}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router_v1.post("/{camera_id}/hlsstop")
-async def stop_hls_stream(camera_id: str, camera_service: CameraService = Depends()):
-    try:
-        await camera_service.stop_hls_stream(camera_id)
-        logger.info(f"Stream stopped for camera {camera_id}")
-        return {"message": f"Stream stopped for camera {camera_id}"}
-    except HTTPException as e:
-        logger.error(f"Error stopping stream for camera {camera_id}: {e}")
-        raise e
-    except Exception as e:
-        logger.error(f"Error stopping stream for camera {camera_id}: {e}")
+        logger.error(f"Error updating camera {camera_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router_v1.delete("/{camera_id}")
-def remove_camera(camera_id: str, camera_service: CameraService = Depends()):
-    try:
-        camera_service.remove_camera(camera_id)
-        logger.info(f"Camera {camera_id} removed successfully")
-        return {"message": f"Camera {camera_id} removed successfully"}
-    except HTTPException as e:
-        logger.error(f"Error removing camera {camera_id}: {e}")
-        raise e
-    except Exception as e:
-        logger.error(f"Error removing camera {camera_id}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router_v1.post("/{camera_id}/livestart")
-def start_live_stream(
+async def delete_camera(
     camera_id: str,
-    camera_service: CameraService = Depends(),
+    db: AsyncSession = Depends(get_db),
 ):
     try:
-        camera_service.start_live_stream(camera_id)
-        logger.info(f"Stream started for camera {camera_id}")
-        return {"message": f"Live stream started for camera {camera_id}"}
+        camera = await cruds.get_camera_by_camera_id(db, camera_id)
+        if camera is None:
+            logger.error(f"Camera {camera_id} not found")
+            raise HTTPException(status_code=404, detail="Camera not found")
+        await cruds.delete_camera(db, camera_id)
+        logger.info(f"Camera {camera_id} deleted successfully")
+        return {"message": f"Camera {camera_id} deleted successfully"}
     except HTTPException as e:
-        if e.status_code == 400 and e.detail == "Camera is already streaming":
-            logger.warning(
-                f"Warnig error starting stream {camera_id} but ignore it: {e}"
-            )
-            return {"error": str(e)}
-        else:
-            logger.error(f"Error starting stream {camera_id}: {e}")
-            raise e
-    except Exception as e:
-        logger.error(f"Error starting stream for camera {camera_id}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router_v1.get("/{camera_id}/live")
-async def get_live_stream(camera_id: str, camera_service: CameraService = Depends()):
-    try:
-        logger.info(f"Live stream retrieved for camera {camera_id}")
-        return StreamingResponse(
-            camera_service.get_live_stream(camera_id),
-            media_type="multipart/x-mixed-replace;boundary=frame",
-        )
-    except HTTPException as e:
-        logger.error(f"Error retrieving stream for camera {camera_id}: {e}")
+        logger.error(f"Error deleting camera {camera_id}: {e}")
         raise e
     except Exception as e:
-        logger.error(f"Error retrieving stream for camera {camera_id}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router_v1.post("/{camera_id}/livestop")
-async def stop_live_stream(camera_id: str, camera_service: CameraService = Depends()):
-    try:
-        await camera_service.stop_live_stream(camera_id)
-        logger.info(f"Stream stopped for camera {camera_id}")
-        return {"message": f"Live stream stopped for camera {camera_id}"}
-    except HTTPException as e:
-        logger.error(f"Error stopping live stream for camera {camera_id}: {e}")
-        raise e
-    except Exception as e:
-        logger.error(f"Error stopping live stream for camera {camera_id}: {e}")
+        logger.error(f"Error deleting camera {camera_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
