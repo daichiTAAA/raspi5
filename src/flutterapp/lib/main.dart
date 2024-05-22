@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-// import 'screens/rtsp_stream_media_kit_screen.dart';
-// import 'screens/rtsp_stream_media_kit_dual_screen.dart';
-import 'screens/rtsp_stream_media_kit_add_screen.dart';
-import 'screens/video_player_example.dart';
-// import 'screens/hls_stream_video_player_screen.dart';
-import 'screens/hls_stream_media_kit_screen.dart';
+import 'screens/camera_register.dart';
+import 'screens/rtsp_stream_media_kit_selected_screen.dart';
 
-void main() => runApp(const MyApp());
+void main() {
+  runApp(const MyApp());
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -14,18 +12,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Video Player',
+      title: 'Camera App',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
       initialRoute: '/',
       routes: {
-        '/': (context) => const RtspMediaKitAddPlayer(),
-        '/hls': (context) => const HlsMediaKitPlayer(
-              cameraId: 'cam1',
-              rtspUrl: 'rtsp://192.168.0.101:8554/stream1',
-            ),
-        '/example': (context) => const VideoPlayerExample(
-              cameraId: 'cam1',
-              rtspUrl: 'rtsp://192.168.0.101:8554/stream1',
-            ),
+        '/': (context) => const CameraRegister(),
+        '/rtsp_stream': (context) => const RtspMediaKitAddPlayer(),
       },
     );
   }
