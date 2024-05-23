@@ -7,3 +7,4 @@ psutil
 sqlalchemy
 aiosqlite
 greenlet
+Pillow

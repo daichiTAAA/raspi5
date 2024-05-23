@@ -2,22 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 // import 'package:media_kit_libs_video/media_kit_libs_video.dart';
+import 'package:logger/logger.dart';
 
-import '../models/rtsp_stream_media_kit.dart';
+import '../models/jpeg_stream_media_kit.dart';
 
-class RtspMediaKitSelectedPlayer extends StatefulWidget {
-  const RtspMediaKitSelectedPlayer({
+import '../services/api_service.dart';
+
+class JpegStreamScreen extends StatefulWidget {
+  const JpegStreamScreen({
     super.key,
   });
 
   @override
-  RtspMediaKitSelectedPlayerState createState() =>
-      RtspMediaKitSelectedPlayerState();
+  JpegStreamScreenState createState() => JpegStreamScreenState();
 }
 
-class RtspMediaKitSelectedPlayerState
-    extends State<RtspMediaKitSelectedPlayer> {
-  final List<RtspStream> _streams = [];
+class JpegStreamScreenState extends State<JpegStreamScreen> {
+  final List<JpegStream> _streams = [];
+  var logger = Logger();
+  final ApiService _apiService = ApiService();
 
   @override
   void initState() {
@@ -29,15 +32,29 @@ class RtspMediaKitSelectedPlayerState
   }
 
   void _initializeFromArguments() {
-    final args = ModalRoute.of(context)?.settings.arguments
-        as List<Map<String, String>>?;
-    if (args != null) {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is Map<String, String>) {
       setState(() {
-        for (var camera in args) {
-          _streams.add(RtspStream(
-              cameraId: camera['camera_id']!, rtspUrl: camera['rtsp_url']!));
+        if (args['cameraId'] != null && args['rtspUrl'] != null) {
+          _apiService.addCamera(args['cameraId']!, args['rtspUrl']!);
+          _streams.add(JpegStream(cameraId: args['cameraId']!));
+        } else {
+          logger.e('Missing cameraId or rtspUrl in arguments: $args');
         }
       });
+    } else if (args is List<Map<String, String>>) {
+      setState(() {
+        for (var arg in args) {
+          if (arg['cameraId'] != null) {
+            _streams.add(JpegStream(cameraId: arg['cameraId']!));
+          } else {
+            logger.e('Missing cameraId in argument: $arg');
+          }
+        }
+      });
+    } else {
+      // 引数が期待した型でない場合のエラーハンドリング
+      logger.e('Invalid arguments: $args');
     }
   }
 
@@ -53,7 +70,7 @@ class RtspMediaKitSelectedPlayerState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('RTSP Stream'),
+        title: const Text('Jpeg Stream'),
         actions: [
           IconButton(
             icon: const Icon(Icons.camera),

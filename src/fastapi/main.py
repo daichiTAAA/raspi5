@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
 from fastapi.staticfiles import StaticFiles
 
-from api.routers import camera, camera_instance, hls, rtsp
+from api.routers import camera, camera_instance, hls, jpeg, rtsp
 from api.setup_logger import setup_logger
 from api.db import async_engine, Base
 
@@ -38,6 +38,7 @@ except Exception as e:
 app.include_router(camera.router_v1, prefix="/v1")
 app.include_router(camera_instance.router_v1, prefix="/v1")
 app.include_router(hls.router_v1, prefix="/v1")
+app.include_router(jpeg.router_v1, prefix="/v1")
 app.include_router(rtsp.router_v1, prefix="/v1")
 
 

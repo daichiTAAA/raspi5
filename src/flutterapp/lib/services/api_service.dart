@@ -25,13 +25,19 @@ class ApiService {
   // }
 
   void addCamera(String cameraId, String rtspUrl) {
-    final request = SyncHttpClient.postUrl(Uri.parse('$baseUrl/v1/cameras'));
+    final request = SyncHttpClient.postUrl(
+        Uri.parse('$baseUrl/v1/camerainstances/$cameraId'));
     request.headers.set('Content-Type', 'application/json; charset=UTF-8');
     request.write(jsonEncode(<String, String>{
       'camera_id': cameraId,
       'rtsp_url': rtspUrl,
     }));
     final response = request.close();
+
+    if (response.statusCode == 400 &&
+        response.body == '{"detail":"Camera already exists"}') {
+      return;
+    }
 
     if (response.statusCode != 200) {
       throw Exception('Failed to add camera');
@@ -47,8 +53,8 @@ class ApiService {
   //   }
   // }
   void startHlsStream(String cameraId) {
-    final request = SyncHttpClient.postUrl(
-        Uri.parse('$baseUrl/v1/cameras/$cameraId/hlsstart'));
+    final request =
+        SyncHttpClient.postUrl(Uri.parse('$baseUrl/v1/hlss/$cameraId/start'));
     request.headers.set('Content-Type', 'application/json; charset=UTF-8');
     request.write(jsonEncode(<String, String>{
       'camera_id': cameraId,
@@ -73,7 +79,7 @@ class ApiService {
   // }
 
   String getHlsStreamUrl(String cameraId) {
-    final url = Uri.parse('$baseUrl/v1/cameras/$cameraId/hlsurl');
+    final url = Uri.parse('$baseUrl/v1/hlss/$cameraId/url');
     final request = SyncHttpClient.getUrl(url);
     request.headers.set('Content-Type', 'application/json; charset=UTF-8');
 
@@ -104,7 +110,7 @@ class ApiService {
 
   void keepHlsStreamAlive(String cameraId) {
     final request = SyncHttpClient.postUrl(
-        Uri.parse('$baseUrl/v1/cameras/$cameraId/hlskeepalive'));
+        Uri.parse('$baseUrl/v1/hlss/$cameraId/keepalive'));
     request.headers.set('Content-Type', 'application/json; charset=UTF-8');
     request.write(jsonEncode(<String, String>{
       'camera_id': cameraId,
@@ -118,7 +124,7 @@ class ApiService {
 
   void stopHlsStream(String cameraId) {
     final request =
-        SyncHttpClient.postUrl(Uri.parse('$baseUrl/v1/cameras/$cameraId/stop'));
+        SyncHttpClient.postUrl(Uri.parse('$baseUrl/v1/hlss/$cameraId/stop'));
     request.headers.set('Content-Type', 'application/json; charset=UTF-8');
     request.write(jsonEncode(<String, String>{
       'camera_id': cameraId,
@@ -132,7 +138,7 @@ class ApiService {
 
   Future<void> removeCamera(String cameraId) async {
     final response =
-        await http.delete(Uri.parse('$baseUrl/v1/cameras/$cameraId'));
+        await http.delete(Uri.parse('$baseUrl/v1/camerainstances/$cameraId'));
 
     if (response.statusCode != 200) {
       throw Exception('Failed to remove camera');
@@ -141,7 +147,7 @@ class ApiService {
 
   Future<void> startLiveStream(String cameraId) async {
     final response =
-        await http.post(Uri.parse('$baseUrl/v1/cameras/$cameraId/livestart'));
+        await http.post(Uri.parse('$baseUrl/v1/rtsps/$cameraId/start'));
 
     if (response.statusCode != 200) {
       throw Exception('Failed to start live stream');
@@ -149,16 +155,65 @@ class ApiService {
   }
 
   Future<String> getLiveStreamUrl(String cameraId) async {
-    final url = '$baseUrl/v1/cameras/$cameraId/live';
+    final url = '$baseUrl/v1/rtsps/$cameraId';
     return url;
   }
 
   Future<void> stopLiveStream(String cameraId) async {
     final response =
-        await http.post(Uri.parse('$baseUrl/v1/cameras/$cameraId/livestop'));
+        await http.post(Uri.parse('$baseUrl/v1/rtsps/$cameraId/stop'));
 
     if (response.statusCode != 200) {
       throw Exception('Failed to stop live stream');
+    }
+  }
+
+  void startJpegExtractProcess(String cameraId) {
+    final request =
+        SyncHttpClient.postUrl(Uri.parse('$baseUrl/v1/jpeg/$cameraId/start'));
+    request.headers.set('Content-Type', 'application/json; charset=UTF-8');
+    final response = request.close();
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to start JPEG process');
+    }
+  }
+
+  void stopJpegExtractProcess(String cameraId) {
+    final request =
+        SyncHttpClient.postUrl(Uri.parse('$baseUrl/v1/jpeg/$cameraId/stop'));
+    request.headers.set('Content-Type', 'application/json; charset=UTF-8');
+    final response = request.close();
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to stop JPEG process');
+    }
+  }
+
+  void keepJpegExtractProcessAlive(String cameraId) {
+    final request = SyncHttpClient.postUrl(
+        Uri.parse('$baseUrl/v1/jpeg/$cameraId/keepalive'));
+    request.headers.set('Content-Type', 'application/json; charset=UTF-8');
+    final response = request.close();
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to keep JPEG process alive');
+    }
+  }
+
+  String getJpegStreamUrl(String cameraId) {
+    final url = Uri.parse('$baseUrl/v1/jpeg/$cameraId/stream');
+    return url.toString();
+  }
+
+  void keepJpegStreamProcessAlive(String cameraId) {
+    final request = SyncHttpClient.postUrl(
+        Uri.parse('$baseUrl/v1/jpeg/$cameraId/keep_stream'));
+    request.headers.set('Content-Type', 'application/json; charset=UTF-8');
+    final response = request.close();
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to keep JPEG process alive');
     }
   }
 }

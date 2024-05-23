@@ -1,47 +1,53 @@
 import 'package:flutter/material.dart';
-import 'package:media_kit/media_kit.dart';
-import 'package:media_kit_video/media_kit_video.dart';
-// import 'package:media_kit_libs_video/media_kit_libs_video.dart';
+import 'package:video_player/video_player.dart';
+import 'package:logger/logger.dart';
 
-import '../models/rtsp_stream_media_kit.dart';
+import '../models/jpeg_stream_video_player.dart';
 
-class RtspMediaKitAddPlayer extends StatefulWidget {
-  const RtspMediaKitAddPlayer({
+class JpegStreamScreen extends StatefulWidget {
+  const JpegStreamScreen({
     super.key,
   });
 
   @override
-  RtspMediaKitAddPlayerState createState() => RtspMediaKitAddPlayerState();
+  JpegStreamScreenState createState() => JpegStreamScreenState();
 }
 
-class RtspMediaKitAddPlayerState extends State<RtspMediaKitAddPlayer> {
-  final List<RtspStream> _streams = [];
-  final TextEditingController _cameraIdController = TextEditingController();
-  final TextEditingController _rtspUrlController = TextEditingController();
+class JpegStreamScreenState extends State<JpegStreamScreen> {
+  final List<JpegStream> _streams = [];
+  var logger = Logger();
 
   @override
   void initState() {
     super.initState();
-    MediaKit.ensureInitialized();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeFromArguments();
+    });
   }
 
-  void _addStream() {
-    final cameraId = _cameraIdController.text;
-    final rtspUrl = _rtspUrlController.text;
-    if (cameraId.isNotEmpty && rtspUrl.isNotEmpty) {
+  void _initializeFromArguments() {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is String) {
       setState(() {
-        _streams.add(RtspStream(cameraId: cameraId, rtspUrl: rtspUrl));
+        _streams.add(JpegStream(cameraId: args));
       });
+    } else if (args is List<String>) {
+      setState(() {
+        for (var arg in args) {
+          _streams.add(JpegStream(cameraId: arg));
+        }
+      });
+    } else {
+      // 引数が期待した型でない場合のエラーハンドリング
+      logger.e('Invalid arguments: $args');
     }
   }
 
   @override
   void dispose() {
     for (var stream in _streams) {
-      stream.player.dispose();
+      stream.controller.dispose();
     }
-    _cameraIdController.dispose();
-    _rtspUrlController.dispose();
     super.dispose();
   }
 
@@ -49,37 +55,18 @@ class RtspMediaKitAddPlayerState extends State<RtspMediaKitAddPlayer> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('RTSP Stream'),
+        title: const Text('Jpeg Stream'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.camera),
+            onPressed: () {
+              Navigator.pushNamed(context, '/');
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _cameraIdController,
-                    decoration: const InputDecoration(
-                      labelText: 'Camera ID',
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: TextField(
-                    controller: _rtspUrlController,
-                    decoration: const InputDecoration(
-                      labelText: 'RTSP URL',
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: _addStream,
-                ),
-              ],
-            ),
-          ),
           Expanded(
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -110,12 +97,7 @@ class RtspMediaKitAddPlayerState extends State<RtspMediaKitAddPlayer> {
                             child: SizedBox(
                               height: MediaQuery.of(context).size.height *
                                   0.3, // 高さをウィンドウサイズの30%に設定
-                              child: Video(
-                                controller: stream.controller,
-                                width: MediaQuery.of(context).size.width,
-                                height:
-                                    MediaQuery.of(context).size.height * 0.3,
-                              ),
+                              child: VideoPlayer(stream.controller),
                             ),
                           ),
                         ],

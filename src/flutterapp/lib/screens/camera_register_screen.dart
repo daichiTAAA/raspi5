@@ -108,11 +108,10 @@ class CameraRegisterState extends State<CameraRegister> {
     );
   }
 
-  Future<void> _startRecording(String cameraId) async {
+  Future<void> _startRecording(String cameraId, String rtspUrl) async {
     try {
+      _apiService.addCamera(cameraId, rtspUrl);
       _apiService.startJpegExtractProcess(cameraId);
-      Timer.periodic(const Duration(seconds: 5),
-          (Timer t) => _apiService.keepJpegExtractProcessAlive(cameraId));
       setState(() {
         _recordingCameras.add(cameraId);
       });
@@ -136,19 +135,19 @@ class CameraRegisterState extends State<CameraRegister> {
     }
   }
 
-  void _toggleRecording(String cameraId) {
+  void _toggleRecording(String cameraId, String rtspUrl) {
     if (_recordingCameras.contains(cameraId)) {
       _stopRecording(cameraId);
     } else {
-      _startRecording(cameraId);
+      _startRecording(cameraId, rtspUrl);
     }
   }
 
-  void _playRecordedVideos(String cameraId) {
+  void _playRecordedVideos(String cameraId, String rtspUrl) {
     Navigator.pushNamed(
       context,
       '/jpeg_stream',
-      arguments: cameraId,
+      arguments: {'cameraId': cameraId, 'rtspUrl': rtspUrl},
     );
   }
 
@@ -211,11 +210,12 @@ class CameraRegisterState extends State<CameraRegister> {
                             isRecording ? Icons.stop : Icons.videocam,
                             color: isRecording ? Colors.red : Colors.green,
                           ),
-                          onPressed: () => _toggleRecording(cameraId),
+                          onPressed: () => _toggleRecording(cameraId, rtspUrl),
                         ),
                         IconButton(
                           icon: const Icon(Icons.play_arrow),
-                          onPressed: () => _playRecordedVideos(cameraId),
+                          onPressed: () =>
+                              _playRecordedVideos(cameraId, rtspUrl),
                         ),
                       ],
                     ),
