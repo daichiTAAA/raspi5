@@ -216,4 +216,15 @@ class ApiService {
       throw Exception('Failed to keep JPEG process alive');
     }
   }
+
+  void stopJpegStreamProcess(String cameraId) {
+    final request = SyncHttpClient.postUrl(
+        Uri.parse('$baseUrl/v1/jpeg/$cameraId/stop_stream'));
+    request.headers.set('Content-Type', 'application/json; charset=UTF-8');
+    final response = request.close();
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to stop JPEG stream');
+    }
+  }
 }

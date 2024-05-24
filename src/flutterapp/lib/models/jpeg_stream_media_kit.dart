@@ -10,11 +10,12 @@ class JpegStream {
   final Player player;
   late final VideoController controller;
   static final ApiService _apiService = ApiService();
+  Timer? _timer;
 
   JpegStream({required this.cameraId}) : player = Player() {
     controller = VideoController(player);
     player.open(Media(_apiService.getJpegStreamUrl(cameraId)));
-    Timer.periodic(const Duration(seconds: 5),
+    _timer = Timer.periodic(const Duration(seconds: 5),
         (Timer t) => _apiService.keepJpegStreamProcessAlive(cameraId));
   }
 
@@ -22,5 +23,10 @@ class JpegStream {
     return JpegStream(
       cameraId: json['camera_id'],
     );
+  }
+
+  void dispose() {
+    _timer?.cancel();
+    player.dispose();
   }
 }

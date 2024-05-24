@@ -14,7 +14,7 @@ class JpegStreamScreen extends StatefulWidget {
 }
 
 class JpegStreamScreenState extends State<JpegStreamScreen> {
-  final List<JpegStream> _streams = [];
+  final List<JpegStreamVideoPlayer> _streams = [];
   var logger = Logger();
 
   @override
@@ -29,12 +29,12 @@ class JpegStreamScreenState extends State<JpegStreamScreen> {
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is String) {
       setState(() {
-        _streams.add(JpegStream(cameraId: args));
+        _streams.add(JpegStreamVideoPlayer(cameraId: args));
       });
     } else if (args is List<String>) {
       setState(() {
         for (var arg in args) {
-          _streams.add(JpegStream(cameraId: arg));
+          _streams.add(JpegStreamVideoPlayer(cameraId: arg));
         }
       });
     } else {

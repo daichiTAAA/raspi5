@@ -3,13 +3,13 @@ import 'package:logger/logger.dart';
 
 import '../services/api_service.dart';
 
-class JpegStream {
+class JpegStreamVideoPlayer {
   final String cameraId;
   static final ApiService _apiService = ApiService();
   late VideoPlayerController controller;
   var logger = Logger();
 
-  JpegStream({required this.cameraId}) {
+  JpegStreamVideoPlayer({required this.cameraId}) {
     final url = _apiService.getJpegStreamUrl(cameraId);
     logger.i('Initializing VideoPlayerController with URL: $url');
     controller = VideoPlayerController.networkUrl(
@@ -22,8 +22,8 @@ class JpegStream {
     });
   }
 
-  factory JpegStream.fromJson(Map<String, dynamic> json) {
-    return JpegStream(
+  factory JpegStreamVideoPlayer.fromJson(Map<String, dynamic> json) {
+    return JpegStreamVideoPlayer(
       cameraId: json['camera_id'],
     );
   }

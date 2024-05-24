@@ -71,6 +71,17 @@ class JpegStreamScreenState extends State<JpegStreamScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Jpeg Stream'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            for (JpegStream stream in _streams) {
+              _apiService.stopJpegStreamProcess(stream.cameraId);
+              stream.dispose();
+            }
+            _streams.clear();
+            Navigator.pop(context);
+          },
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.camera),
