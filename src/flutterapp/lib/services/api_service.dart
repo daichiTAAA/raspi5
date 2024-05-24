@@ -170,7 +170,7 @@ class ApiService {
 
   void startJpegExtractProcess(String cameraId) {
     final request =
-        SyncHttpClient.postUrl(Uri.parse('$baseUrl/v1/jpeg/$cameraId/start'));
+        SyncHttpClient.postUrl(Uri.parse('$baseUrl/v1/jpegs/$cameraId/start'));
     request.headers.set('Content-Type', 'application/json; charset=UTF-8');
     final response = request.close();
 
@@ -181,7 +181,7 @@ class ApiService {
 
   void stopJpegExtractProcess(String cameraId) {
     final request =
-        SyncHttpClient.postUrl(Uri.parse('$baseUrl/v1/jpeg/$cameraId/stop'));
+        SyncHttpClient.postUrl(Uri.parse('$baseUrl/v1/jpegs/$cameraId/stop'));
     request.headers.set('Content-Type', 'application/json; charset=UTF-8');
     final response = request.close();
 
@@ -192,7 +192,7 @@ class ApiService {
 
   void keepJpegExtractProcessAlive(String cameraId) {
     final request = SyncHttpClient.postUrl(
-        Uri.parse('$baseUrl/v1/jpeg/$cameraId/keepalive'));
+        Uri.parse('$baseUrl/v1/jpegs/$cameraId/keepalive'));
     request.headers.set('Content-Type', 'application/json; charset=UTF-8');
     final response = request.close();
 
@@ -202,13 +202,13 @@ class ApiService {
   }
 
   String getJpegStreamUrl(String cameraId) {
-    final url = Uri.parse('$baseUrl/v1/jpeg/$cameraId/stream');
+    final url = Uri.parse('$baseUrl/v1/jpegs/$cameraId/stream');
     return url.toString();
   }
 
   void keepJpegStreamProcessAlive(String cameraId) {
     final request = SyncHttpClient.postUrl(
-        Uri.parse('$baseUrl/v1/jpeg/$cameraId/keep_stream'));
+        Uri.parse('$baseUrl/v1/jpegs/$cameraId/keep_stream'));
     request.headers.set('Content-Type', 'application/json; charset=UTF-8');
     final response = request.close();
 
@@ -219,7 +219,7 @@ class ApiService {
 
   void stopJpegStreamProcess(String cameraId) {
     final request = SyncHttpClient.postUrl(
-        Uri.parse('$baseUrl/v1/jpeg/$cameraId/stop_stream'));
+        Uri.parse('$baseUrl/v1/jpegs/$cameraId/stop_stream'));
     request.headers.set('Content-Type', 'application/json; charset=UTF-8');
     final response = request.close();
 

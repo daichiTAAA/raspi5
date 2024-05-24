@@ -144,6 +144,7 @@ class CameraRegisterState extends State<CameraRegister> {
   }
 
   void _playRecordedVideos(String cameraId, String rtspUrl) {
+    _apiService.addCamera(cameraId, rtspUrl);
     Navigator.pushNamed(
       context,
       '/jpeg_stream',
@@ -205,15 +206,31 @@ class CameraRegisterState extends State<CameraRegister> {
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        Tooltip(
+                          message: 'Live選択',
+                          child: Checkbox(
+                            value: isSelected,
+                            onChanged: (bool? value) {
+                              _toggleCameraSelection(cameraId, rtspUrl);
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 8), // ボタン間のスペースを追加
                         IconButton(
+                          iconSize: 36, // アイコンサイズを大きくする
                           icon: Icon(
                             isRecording ? Icons.stop : Icons.videocam,
                             color: isRecording ? Colors.red : Colors.green,
                           ),
+                          tooltip: isRecording ? '録画停止' : '録画開始',
                           onPressed: () => _toggleRecording(cameraId, rtspUrl),
                         ),
+                        const SizedBox(width: 8), // ボタン間のスペースを追加
                         IconButton(
-                          icon: const Icon(Icons.play_arrow),
+                          iconSize: 36, // アイコンサイズを大きくする
+                          icon:
+                              const Icon(Icons.play_arrow, color: Colors.green),
+                          tooltip: '録画再生',
                           onPressed: () =>
                               _playRecordedVideos(cameraId, rtspUrl),
                         ),
@@ -225,6 +242,17 @@ class CameraRegisterState extends State<CameraRegister> {
                 },
               ),
             ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _selectedCameras.isNotEmpty ? _playSelectedCameras : null,
+        tooltip: 'Live再生',
+        child: const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.play_arrow),
+            Text('Live', style: TextStyle(fontSize: 10)),
           ],
         ),
       ),

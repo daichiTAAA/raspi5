@@ -53,7 +53,7 @@ class RtspMediaKitSelectedPlayerState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('RTSP Stream'),
+        title: const Text('Live Streaming'),
         actions: [
           IconButton(
             icon: const Icon(Icons.camera),
@@ -112,22 +112,6 @@ class RtspMediaKitSelectedPlayerState
             ),
           ),
         ],
-      ),
-      bottomNavigationBar: BottomAppBar(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Tooltip(
-              message: '過去分再生',
-              child: IconButton(
-                icon: const Icon(Icons.live_tv),
-                onPressed: () {
-                  Navigator.pushNamed(context, '/hls');
-                },
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

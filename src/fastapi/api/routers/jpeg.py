@@ -7,7 +7,7 @@ from api.setup_logger import setup_logger
 logger, log_decorator = setup_logger(__name__)
 
 router_v1 = APIRouter(
-    prefix="/jpeg",
+    prefix="/jpegs",
     tags=["JPEG operations"],
     responses={404: {"description": "Not found"}},
 )

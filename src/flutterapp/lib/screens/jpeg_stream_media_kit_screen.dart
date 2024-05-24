@@ -70,7 +70,7 @@ class JpegStreamScreenState extends State<JpegStreamScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Jpeg Stream'),
+        title: const Text('Recoded Videos'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -140,22 +140,6 @@ class JpegStreamScreenState extends State<JpegStreamScreen> {
             ),
           ),
         ],
-      ),
-      bottomNavigationBar: BottomAppBar(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Tooltip(
-              message: '過去分再生',
-              child: IconButton(
-                icon: const Icon(Icons.live_tv),
-                onPressed: () {
-                  Navigator.pushNamed(context, '/hls');
-                },
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
