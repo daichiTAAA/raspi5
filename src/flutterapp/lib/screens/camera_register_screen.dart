@@ -62,10 +62,21 @@ class CameraRegisterState extends State<CameraRegister> {
       _message = null;
     });
 
+    final cameraId = _cameraIdController.text;
+    final rtspUrl = _rtspUrlController.text;
+
+    if (cameraId.isEmpty || rtspUrl.isEmpty) {
+      setState(() {
+        _isLoading = false;
+        _message = 'カメラIDとRTSP URLを入力してください';
+      });
+      return;
+    }
+
     try {
       final cameraData = {
-        'camera_id': _cameraIdController.text,
-        'rtsp_url': _rtspUrlController.text,
+        'camera_id': cameraId,
+        'rtsp_url': rtspUrl,
       };
       final response = await _apiCrudsService.createCamera(cameraData);
       setState(() {
