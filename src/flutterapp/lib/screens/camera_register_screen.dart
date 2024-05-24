@@ -24,6 +24,7 @@ class CameraRegisterState extends State<CameraRegister> {
   List<dynamic> _cameras = [];
   final Set<Map<String, String>> _selectedCameras = {};
   final Set<String> _recordingCameras = {};
+  final Map<String, Timer> _keepAliveTimers = {};
 
   @override
   void initState() {
@@ -53,6 +54,9 @@ class CameraRegisterState extends State<CameraRegister> {
   void dispose() {
     _cameraIdController.dispose();
     _rtspUrlController.dispose();
+    for (var timer in _keepAliveTimers.values) {
+      timer.cancel();
+    }
     super.dispose();
   }
 
@@ -78,7 +82,7 @@ class CameraRegisterState extends State<CameraRegister> {
         'camera_id': cameraId,
         'rtsp_url': rtspUrl,
       };
-      
+
       final response = await _apiCrudsService.createCamera(cameraData);
       setState(() {
         _message = 'カメラが正常に登録されました: ${response['camera_id']}';
@@ -124,6 +128,10 @@ class CameraRegisterState extends State<CameraRegister> {
     try {
       _apiService.addCamera(cameraId, rtspUrl);
       _apiService.startJpegExtractProcess(cameraId);
+      _keepAliveTimers[cameraId] =
+          Timer.periodic(const Duration(seconds: 5), (timer) {
+        _apiService.keepJpegExtractProcessAlive(cameraId);
+      });
       setState(() {
         _recordingCameras.add(cameraId);
       });
@@ -137,6 +145,8 @@ class CameraRegisterState extends State<CameraRegister> {
   Future<void> _stopRecording(String cameraId) async {
     try {
       _apiService.stopJpegExtractProcess(cameraId);
+      _keepAliveTimers[cameraId]?.cancel();
+      _keepAliveTimers.remove(cameraId);
       setState(() {
         _recordingCameras.remove(cameraId);
       });
