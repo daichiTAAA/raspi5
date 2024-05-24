@@ -156,7 +156,7 @@ class CameraRegisterState extends State<CameraRegister> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('カメラ登録'),
+        title: const Text('Network Camera App'),
         actions: [
           IconButton(
             icon: const Icon(Icons.play_arrow),
@@ -201,8 +201,18 @@ class CameraRegisterState extends State<CameraRegister> {
                   final isRecording = _recordingCameras.contains(cameraId);
 
                   return ListTile(
-                    title: Text('カメラID: $cameraId'),
-                    subtitle: Text('RTSP URL: $rtspUrl'),
+                    title: Text(
+                      'カメラID: $cameraId',
+                      style: TextStyle(
+                        color: isSelected ? Colors.black : null, // 選択時の文字色を黒に設定
+                      ),
+                    ),
+                    subtitle: Text(
+                      'RTSP URL: $rtspUrl',
+                      style: TextStyle(
+                        color: isSelected ? Colors.black : null, // 選択時の文字色を黒に設定
+                      ),
+                    ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -213,9 +223,11 @@ class CameraRegisterState extends State<CameraRegister> {
                             onChanged: (bool? value) {
                               _toggleCameraSelection(cameraId, rtspUrl);
                             },
+                            activeColor: Colors.blue, // チェックボックスの選択時の色を青に設定
+                            checkColor: Colors.white, // チェックマークの色を白に設定
                           ),
                         ),
-                        const SizedBox(width: 8), // ボタン間のスペースを追加
+                        const SizedBox(width: 20), // ボタン間のスペースを追加
                         IconButton(
                           iconSize: 36, // アイコンサイズを大きくする
                           icon: Icon(
@@ -248,6 +260,8 @@ class CameraRegisterState extends State<CameraRegister> {
       floatingActionButton: FloatingActionButton(
         onPressed: _selectedCameras.isNotEmpty ? _playSelectedCameras : null,
         tooltip: 'Live再生',
+        backgroundColor:
+            _selectedCameras.isNotEmpty ? Colors.green : Colors.grey,
         child: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
