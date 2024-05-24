@@ -24,6 +24,17 @@ class CamerasCruds {
 
   Future<Map<String, dynamic>> createCamera(
       Map<String, dynamic> cameraData) async {
+    // 既存のカメラをチェック
+    final existingCameras = await getCameras();
+    final existingCamera = existingCameras.firstWhere(
+      (camera) => camera['camera_id'] == cameraData['camera_id'],
+      orElse: () => null,
+    );
+
+    if (existingCamera != null) {
+      throw Exception('カメラIDが既に登録されています');
+    }
+
     final response = await http.post(
       Uri.parse('$baseUrl/v1/cameras'),
       headers: {'Content-Type': 'application/json'},

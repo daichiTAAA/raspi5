@@ -78,6 +78,7 @@ class CameraRegisterState extends State<CameraRegister> {
         'camera_id': cameraId,
         'rtsp_url': rtspUrl,
       };
+      
       final response = await _apiCrudsService.createCamera(cameraData);
       setState(() {
         _message = 'カメラが正常に登録されました: ${response['camera_id']}';
