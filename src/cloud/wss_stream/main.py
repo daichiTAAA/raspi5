@@ -3,9 +3,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
 from fastapi.staticfiles import StaticFiles
 
-from api.routers import camera, camera_instance
+from cloud.wss_stream.api.routers import user
 from api.setup_logger import setup_logger
 from api.db import async_engine, Base
+from cloud.wss_stream.api.routers import user_instance
 
 logger, log_decorator = setup_logger(__name__)
 
@@ -35,8 +36,8 @@ except Exception as e:
     logger.error(f"Error mounting static directory: {e}")
 
 
-app.include_router(camera.router_v1, prefix="/v1")
-app.include_router(camera_instance.router_v1, prefix="/v1")
+app.include_router(user.router_v1, prefix="/v1")
+app.include_router(user_instance.router_v1, prefix="/v1")
 
 
 @app.get("/")
