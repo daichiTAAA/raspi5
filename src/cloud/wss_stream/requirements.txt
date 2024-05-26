@@ -1,0 +1,10 @@
+ffmpeg-python
+opencv-python
+pydantic
+fastapi
+uvicorn
+psutil
+sqlalchemy
+aiosqlite
+greenlet
+Pillow
