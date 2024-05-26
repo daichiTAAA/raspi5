@@ -40,19 +40,24 @@ async def create_user(db: AsyncSession, user: schemas.UserCreate) -> models.User
     try:
         new_user = models.User(
             user_id=user.user_id,
+            camera_id=user.camera_id,
             rtsp_url=user.rtsp_url,
+            wss_url=user.wss_url,
         )
         db.add(new_user)
         await db.commit()
         created_user: models.User = models.User(
-            user_id=user.user_id, rtsp_url=user.rtsp_url
+            user_id=user.user_id,
+            camera_id=user.camera_id,
+            rtsp_url=user.rtsp_url,
+            wss_url=user.wss_url,
         )
         logger.info(f"User with user_id {user.user_id} created successfully")
         return created_user
     except Exception as e:
         logger.error(f"Error creating user with user_id {user.user_id}: {e}")
         await db.rollback()
-        return None
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 async def update_user(
@@ -79,7 +84,9 @@ async def update_user(
                 )
 
         existing_user.user_id = user.user_id
+        existing_user.camera_id = user.camera_id
         existing_user.rtsp_url = user.rtsp_url
+        existing_user.wss_url = user.wss_url
         await db.commit()
         logger.info(f"User with user_id {user_id} updated successfully")
         return existing_user

@@ -1,7 +1,7 @@
-from .camera import (
-    create_camera,
-    get_cameras,
-    get_camera_by_camera_id,
-    update_camera,
-    delete_camera,
+from .user import (
+    create_user,
+    get_users,
+    get_user_by_user_id,
+    update_user,
+    delete_user,
 )
