@@ -3,10 +3,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
 from fastapi.staticfiles import StaticFiles
 
-from cloud.wss_stream.api.routers import user
+from cloud.wss_stream.api.routers import user, user_instance
 from api.setup_logger import setup_logger
 from api.db import async_engine, Base
-from cloud.wss_stream.api.routers import user_instance
 
 logger, log_decorator = setup_logger(__name__)
 

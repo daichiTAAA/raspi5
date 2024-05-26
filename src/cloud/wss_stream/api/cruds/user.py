@@ -22,7 +22,7 @@ async def get_users(db: AsyncSession):
 
 
 async def get_user_by_user_id(db: AsyncSession, user_id: str):
-    """カメラをuser_idで取得"""
+    """ユーザーをuser_idで取得"""
     logger.info(f"Fetching user with user_id {user_id}")
     try:
         result = await db.execute(

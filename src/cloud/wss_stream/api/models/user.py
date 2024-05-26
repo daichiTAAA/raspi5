@@ -7,4 +7,6 @@ from api.db import Base
 class User(Base):
     __tablename__ = "users"
     user_id = Column(String, primary_key=True)
-    camera_id = Column(String)
+    camera_id = Column(String, primary_key=True)
+    rtsp_url = Column(String)
+    wss_url = Column(String)
