@@ -724,3 +724,5 @@ app.*.symbols
 
 **/fastapi/**/static/*
 !**/fastapi/**/static/.gitkeep
+
+**/*.db
