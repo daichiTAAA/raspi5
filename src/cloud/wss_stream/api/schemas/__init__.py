@@ -1,1 +1,1 @@
-from .user import UserCreate
+from .usercamera import UserCameraCreate

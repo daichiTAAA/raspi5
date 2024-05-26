@@ -2,7 +2,7 @@ from typing import Any
 from pydantic import BaseModel
 
 
-class UserInstance(BaseModel):
+class UserCameraInstance(BaseModel):
     user_id: str
     camera_id: str
     rtsp_url: str

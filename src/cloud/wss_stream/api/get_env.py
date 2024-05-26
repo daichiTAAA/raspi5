@@ -1,5 +1,5 @@
 import os
-from pydantic import ValidationError, TypeAdapter
+from pydantic import ValidationError, TypeAdapter, BaseModel
 from typing import Type, TypeVar
 
 from dotenv import load_dotenv
@@ -60,3 +60,11 @@ def get_env_info(env_info_class: Type[S]) -> S:
     load_dotenv()
     env_info_instance = create_instance_from_env(env_info_class)
     return env_info_instance
+
+
+class EnvInfo(BaseModel):
+    CLOUD_DOMAIN: str
+    CLOUD_PORT: int
+
+
+env_info: EnvInfo = get_env_info(EnvInfo)
