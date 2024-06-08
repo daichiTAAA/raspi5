@@ -1,3 +1,4 @@
+import base64
 import concurrent.futures
 from io import BytesIO
 import os
@@ -11,9 +12,11 @@ from fastapi.responses import StreamingResponse
 import ffmpeg
 import psutil
 from PIL import Image
-
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import api.models as models
+import api.schemas as schemas
+import api.cruds as cruds
 from api.setup_logger import setup_logger
 
 logger, log_decorator = setup_logger(__name__)
@@ -689,4 +692,46 @@ class CameraService:
             raise HTTPException(status_code=500, detail=str(e))
         except Exception as e:
             logger.error(f"Error removing jpeg files for camera {camera_id}: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+
+    async def save_selected_area(
+        self,
+        db: AsyncSession,
+        camera_id: str,
+        saving_area: schemas.SaveArea,
+    ):
+        logger.info("api.services.camera_service.save_selected_area")
+        try:
+            camera_instance: models.CameraInstance = self.cameras[camera_id]
+            area_selected_jpeg_dir_path = f"data/area_selected_jpeg/{camera_id}"
+            os.makedirs(area_selected_jpeg_dir_path, exist_ok=True)
+            area_selected_jpeg_path = os.path.join(
+                area_selected_jpeg_dir_path, f"area_selected_{camera_id}.jpg"
+            )
+
+            # Base64デコード
+            jpeg_data = base64.b64decode(saving_area.area_selected_jpeg_data)
+
+            with open(area_selected_jpeg_path, "wb") as file:
+                file.write(jpeg_data)
+            updating_camera = schemas.CameraUpdate(
+                camera_id=camera_id,
+                rtsp_url=camera_instance.rtsp_url,
+                area_selected_jpeg_path=area_selected_jpeg_path,
+                area_selected_jpeg_width=saving_area.area_selected_jpeg_width,
+                area_selected_jpeg_height=saving_area.area_selected_jpeg_height,
+                selected_area_start_x=saving_area.selected_area_start_x,
+                selected_area_start_y=saving_area.selected_area_start_y,
+                selected_area_end_x=saving_area.selected_area_end_x,
+                selected_area_end_y=saving_area.selected_area_end_y,
+            )
+            updated_camera = await cruds.camera.update_camera(
+                db, camera_id, updating_camera
+            )
+            logger.info(f"Selected area saved for camera {camera_id}, {updated_camera}")
+            return {
+                "message": f"Selected area saved for camera {camera_id}, {updated_camera}"
+            }
+        except Exception as e:
+            logger.error(f"Error saving selected area for camera {camera_id}: {e}")
             raise HTTPException(status_code=500, detail=str(e))

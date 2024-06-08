@@ -58,7 +58,7 @@ async def create_camera(
 
 
 async def update_camera(
-    db: AsyncSession, camera_id: str, camera: schemas.CameraCreate
+    db: AsyncSession, camera_id: str, camera: schemas.CameraUpdate
 ) -> models.Camera | None:
     logger.info(f"Updating camera with camera_id {camera_id}")
     try:
@@ -86,6 +86,14 @@ async def update_camera(
 
         existing_camera.camera_id = camera.camera_id
         existing_camera.rtsp_url = camera.rtsp_url
+        existing_camera.area_selected_jpeg_path = camera.area_selected_jpeg_path
+        existing_camera.area_selected_jpeg_width = camera.area_selected_jpeg_width
+        existing_camera.area_selected_jpeg_height = camera.area_selected_jpeg_height
+        existing_camera.selected_area_start_x = camera.selected_area_start_x
+        existing_camera.selected_area_start_y = camera.selected_area_start_y
+        existing_camera.selected_area_end_x = camera.selected_area_end_x
+        existing_camera.selected_area_end_y = camera.selected_area_end_y
+
         await db.commit()
         logger.info(f"Camera with camera_id {camera_id} updated successfully")
         return existing_camera

@@ -239,4 +239,36 @@ class ApiService {
 
     return response.bodyBytes;
   }
+
+  void saveSelectedArea(
+      String cameraId,
+      Uint8List image,
+      double originalWidth,
+      double originalHeight,
+      double originalStartX,
+      double originalStartY,
+      double originalEndX,
+      double originalEndY) {
+    final request = SyncHttpClient.postUrl(
+        Uri.parse('$baseUrl/v1/jpegs/$cameraId/save_area'));
+    request.headers.set('Content-Type', 'application/json; charset=UTF-8');
+
+    // 画像をBase64エンコード
+    String base64Image = base64Encode(image);
+
+    request.write(jsonEncode(<String, dynamic>{
+      'area_selected_jpeg_data': base64Image,
+      'area_selected_jpeg_width': originalWidth.toString(),
+      'area_selected_jpeg_height': originalHeight.toString(),
+      'selected_area_start_x': originalStartX.toString(),
+      'selected_area_start_y': originalStartY.toString(),
+      'selected_area_end_x': originalEndX.toString(),
+      'selected_area_end_y': originalEndY.toString(),
+    }));
+    final response = request.close();
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to save selected area');
+    }
+  }
 }

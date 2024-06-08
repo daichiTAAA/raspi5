@@ -175,6 +175,7 @@ class CameraRegisterState extends State<CameraRegister> {
   }
 
   void _selectRange(String cameraId, String rtspUrl) {
+    _apiService.addCamera(cameraId, rtspUrl);
     Navigator.pushNamed(
       context,
       '/range_selector',

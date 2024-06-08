@@ -3,8 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db import get_db
-from api.schemas.camera import CameraCreate
 from api.setup_logger import setup_logger
+import api.schemas as schemas
 import api.cruds as cruds
 
 logger, log_decorator = setup_logger(__name__)
@@ -18,7 +18,7 @@ router_v1 = APIRouter(
 
 @router_v1.post("")
 async def create_camera(
-    camera: CameraCreate,
+    camera: schemas.CameraCreate,
     db: AsyncSession = Depends(get_db),
 ):
     try:
@@ -77,7 +77,7 @@ async def get_camera_by_camera_id(camera_id: str, db: AsyncSession = Depends(get
 @router_v1.put("/{camera_id}")
 async def update_camera(
     camera_id: str,
-    camera: CameraCreate,
+    camera: schemas.CameraUpdate,
     db: AsyncSession = Depends(get_db),
 ):
     try:

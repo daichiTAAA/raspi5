@@ -97,6 +97,21 @@ class RangeSelectorState extends State<RangeSelector> {
     }
   }
 
+  void _saveSelectedArea() {
+    if (_jpegImages.isNotEmpty) {
+      _apiService.saveSelectedArea(
+        _jpegImages[0].cameraId,
+        _jpegImages[0].image!,
+        _jpegImages[0].originalWidth!,
+        _jpegImages[0].originalHeight!,
+        _jpegImages[0].originalStartX!,
+        _jpegImages[0].originalStartY!,
+        _jpegImages[0].originalEndX!,
+        _jpegImages[0].originalEndY!,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -199,6 +214,7 @@ class RangeSelectorState extends State<RangeSelector> {
                                     },
                                     onPanEnd: (details) {
                                       _saveSelectionCoordinates();
+                                      _saveSelectedArea();
                                     },
                                     child: CustomPaint(
                                       painter: _RangePainter(_start, _end),

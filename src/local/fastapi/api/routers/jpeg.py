@@ -1,8 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.db import get_db
 from api.services.camera_service import CameraService
 from api.setup_logger import setup_logger
+import api.schemas as schemas
 
 logger, log_decorator = setup_logger(__name__)
 
@@ -148,4 +151,23 @@ def remove_jpeg_files(camera_id: str, camera_service: CameraService = Depends())
         raise e
     except Exception as e:
         logger.error(f"Error deleting JPEG directory for camera {camera_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router_v1.post("/{camera_id}/save_area")
+async def save_area(
+    camera_id: str,
+    saving_area: schemas.SaveArea,
+    db: AsyncSession = Depends(get_db),
+    camera_service: CameraService = Depends(),
+):
+    try:
+        message = await camera_service.save_selected_area(db, camera_id, saving_area)
+        logger.info(message)
+        return message
+    except HTTPException as e:
+        logger.error(f"Error saving area for camera {camera_id}: {e}")
+        raise e
+    except Exception as e:
+        logger.error(f"Error saving area for camera {camera_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
