@@ -589,6 +589,32 @@ class CameraService:
 
         return StreamingResponse(stream(), media_type="video/mp2t")
 
+    def get_latest_jpeg(self, camera_id: str):
+        logger.info("api.services.camera_service.get_latest_jpeg")
+        if camera_id not in self.cameras:
+            logger.error(f"Camera not found: {camera_id}")
+            raise HTTPException(status_code=404, detail="Camera not found")
+
+        camera: models.CameraInstance = self.cameras[camera_id]
+        jpeg_dir_path = camera.jpeg_dir_path
+        jpeg_files = [f for f in os.listdir(jpeg_dir_path) if f.endswith(".jpg")]
+        if not jpeg_files:
+            logger.error(f"No jpeg files found for camera {camera_id}")
+            raise HTTPException(status_code=404, detail="No jpeg files found")
+
+        latest_jpeg = max(
+            jpeg_files, key=lambda x: os.path.getctime(os.path.join(jpeg_dir_path, x))
+        )
+        latest_jpeg_path = os.path.join(jpeg_dir_path, latest_jpeg)
+
+        with open(latest_jpeg_path, "rb") as file:
+            image = Image.open(file)
+            img_io = BytesIO()
+            image.save(img_io, "JPEG")
+            img_io.seek(0)
+
+            return StreamingResponse(img_io, media_type="image/jpeg")
+
     def stop_jpeg_stream_process(self, camera_id: str):
         if camera_id not in self.cameras:
             raise HTTPException(status_code=404, detail="Camera not found")

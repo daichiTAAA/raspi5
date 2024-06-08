@@ -174,6 +174,14 @@ class CameraRegisterState extends State<CameraRegister> {
     );
   }
 
+  void _selectRange(String cameraId, String rtspUrl) {
+    Navigator.pushNamed(
+      context,
+      '/range_selector',
+      arguments: {'cameraId': cameraId, 'rtspUrl': rtspUrl},
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -267,6 +275,15 @@ class CameraRegisterState extends State<CameraRegister> {
                           tooltip: '録画再生',
                           onPressed: () =>
                               _playRecordedVideos(cameraId, rtspUrl),
+                        ),
+                        const SizedBox(width: 8), // ボタン間のスペースを追加
+                        // 録画画像を使用して範囲を指定する
+                        IconButton(
+                          iconSize: 36, // アイコンサイズを大きくする
+                          icon:
+                              const Icon(Icons.select_all, color: Colors.green),
+                          tooltip: '録画画像範囲指定',
+                          onPressed: () => _selectRange(cameraId, rtspUrl),
                         ),
                       ],
                     ),

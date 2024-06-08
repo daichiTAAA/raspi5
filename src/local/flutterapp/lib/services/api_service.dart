@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 // import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:sync_http/sync_http.dart';
@@ -226,5 +227,16 @@ class ApiService {
     if (response.statusCode != 200) {
       throw Exception('Failed to stop JPEG stream');
     }
+  }
+
+  Future<Uint8List> getLatestRecordedImage(String cameraId) async {
+    final response =
+        await http.get(Uri.parse('$baseUrl/v1/jpegs/$cameraId/latest_jpeg'));
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to get latest recorded image');
+    }
+
+    return response.bodyBytes;
   }
 }

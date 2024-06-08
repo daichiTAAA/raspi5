@@ -91,6 +91,23 @@ def generate_video_stream_from_jpeg(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router_v1.get("/{camera_id}/latest_jpeg")
+def get_latest_jpeg(camera_id: str, camera_service: CameraService = Depends()):
+    try:
+        logger.info(f"Getting latest JPEG for camera {camera_id}")
+        return camera_service.get_latest_jpeg(camera_id)
+    except HTTPException as e:
+        logger.error(
+            f"Error generating video stream from JPEG for camera {camera_id}: {e}"
+        )
+        raise e
+    except Exception as e:
+        logger.error(
+            f"Error generating video stream from JPEG for camera {camera_id}: {e}"
+        )
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router_v1.post("/{camera_id}/stop_stream")
 def stop_jpeg_stream_process(camera_id: str, camera_service: CameraService = Depends()):
     try:
