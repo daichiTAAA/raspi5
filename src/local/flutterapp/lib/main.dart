@@ -4,6 +4,7 @@ import 'screens/rtsp_stream_media_kit_selected_screen.dart';
 import 'screens/jpeg_stream_media_kit_screen.dart';
 import 'screens/range_selector_screen.dart';
 import 'screens/saved_range_screen.dart';
+import 'screens/range_setting_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -26,6 +27,7 @@ class MyApp extends StatelessWidget {
         '/jpeg_stream': (context) => const JpegStreamScreen(),
         '/range_selector': (context) => const RangeSelector(),
         '/saved_range': (context) => const SavedRangeScreen(),
+        '/range_setting': (context) => const RangeSettingScreen(),
       },
     );
   }

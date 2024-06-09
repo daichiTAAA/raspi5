@@ -174,20 +174,29 @@ class CameraRegisterState extends State<CameraRegister> {
     );
   }
 
-  void _selectRange(String cameraId, String rtspUrl) {
-    _apiService.addCamera(cameraId, rtspUrl);
-    Navigator.pushNamed(
-      context,
-      '/range_selector',
-      arguments: {'cameraId': cameraId, 'rtspUrl': rtspUrl},
-    );
-  }
+  // void _selectRange(String cameraId, String rtspUrl) {
+  //   _apiService.addCamera(cameraId, rtspUrl);
+  //   Navigator.pushNamed(
+  //     context,
+  //     '/range_selector',
+  //     arguments: {'cameraId': cameraId, 'rtspUrl': rtspUrl},
+  //   );
+  // }
 
-  void _showSavedRange(String cameraId, String rtspUrl) {
+  // void _showSavedRange(String cameraId, String rtspUrl) {
+  //   _apiService.addCamera(cameraId, rtspUrl);
+  //   Navigator.pushNamed(
+  //     context,
+  //     '/saved_range',
+  //     arguments: {'cameraId': cameraId, 'rtspUrl': rtspUrl},
+  //   );
+  // }
+
+  void _selectAndShowSavedRange(String cameraId, String rtspUrl) {
     _apiService.addCamera(cameraId, rtspUrl);
     Navigator.pushNamed(
       context,
-      '/saved_range',
+      '/range_setting',
       arguments: {'cameraId': cameraId, 'rtspUrl': rtspUrl},
     );
   }
@@ -289,22 +298,32 @@ class CameraRegisterState extends State<CameraRegister> {
                           onPressed: () =>
                               _playRecordedVideos(cameraId, rtspUrl),
                         ),
+                        // const SizedBox(width: 8), // ボタン間のスペースを追加
+                        // // 保存済みの範囲を表示する
+                        // IconButton(
+                        //   iconSize: 36, // アイコンサイズを大きくする
+                        //   icon:
+                        //       const Icon(Icons.select_all, color: Colors.green),
+                        //   tooltip: '保存済範囲',
+                        //   onPressed: () => _showSavedRange(cameraId, rtspUrl),
+                        // ),
+                        // const SizedBox(width: 8), // ボタン間のスペースを追加
+                        // // 録画画像を使用して範囲を指定する
+                        // IconButton(
+                        //   iconSize: 36, // アイコンサイズを大きくする
+                        //   icon: const Icon(Icons.update, color: Colors.green),
+                        //   tooltip: '範囲設定',
+                        //   onPressed: () => _selectRange(cameraId, rtspUrl),
+                        // ),
                         const SizedBox(width: 8), // ボタン間のスペースを追加
-                        // 保存済みの範囲を表示する
+                        // 録画画像を使用して範囲を指定する。保存済みの範囲を表示する。
                         IconButton(
                           iconSize: 36, // アイコンサイズを大きくする
                           icon:
                               const Icon(Icons.select_all, color: Colors.green),
-                          tooltip: '保存済範囲',
-                          onPressed: () => _showSavedRange(cameraId, rtspUrl),
-                        ),
-                        const SizedBox(width: 8), // ボタン間のスペースを追加
-                        // 録画画像を使用して範囲を指定する
-                        IconButton(
-                          iconSize: 36, // アイコンサイズを大きくする
-                          icon: const Icon(Icons.update, color: Colors.green),
                           tooltip: '範囲設定',
-                          onPressed: () => _selectRange(cameraId, rtspUrl),
+                          onPressed: () =>
+                              _selectAndShowSavedRange(cameraId, rtspUrl),
                         ),
                       ],
                     ),
