@@ -23,6 +23,40 @@ class JpegImage {
     image = jpegData;
   }
 
+  void setOriginalImageSize({required double width, required double height}) {
+    originalWidth = width;
+    originalHeight = height;
+  }
+
+  void setCurrentImageSize({required double width, required double height}) {
+    currentWidth = width;
+    currentHeight = height;
+  }
+
+  void setOriginalSelectionCoordinates({
+    required double startX,
+    required double startY,
+    required double endX,
+    required double endY,
+  }) {
+    originalStartX = startX;
+    originalStartY = startY;
+    originalEndX = endX;
+    originalEndY = endY;
+  }
+
+  void setCurrentSelectionCoordinates({
+    required double startX,
+    required double startY,
+    required double endX,
+    required double endY,
+  }) {
+    currentStartX = startX;
+    currentStartY = startY;
+    currentEndX = endX;
+    currentEndY = endY;
+  }
+
   void setSelectionCoordinates({
     required double originalStartX,
     required double originalStartY,

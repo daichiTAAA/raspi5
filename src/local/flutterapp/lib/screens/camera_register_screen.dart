@@ -183,6 +183,15 @@ class CameraRegisterState extends State<CameraRegister> {
     );
   }
 
+  void _showSavedRange(String cameraId, String rtspUrl) {
+    _apiService.addCamera(cameraId, rtspUrl);
+    Navigator.pushNamed(
+      context,
+      '/saved_range',
+      arguments: {'cameraId': cameraId, 'rtspUrl': rtspUrl},
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -247,6 +256,7 @@ class CameraRegisterState extends State<CameraRegister> {
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        // Live再生するカメラを選択する
                         Tooltip(
                           message: 'Live選択',
                           child: Checkbox(
@@ -259,6 +269,7 @@ class CameraRegisterState extends State<CameraRegister> {
                           ),
                         ),
                         const SizedBox(width: 20), // ボタン間のスペースを追加
+                        // 録画を開始/停止する
                         IconButton(
                           iconSize: 36, // アイコンサイズを大きくする
                           icon: Icon(
@@ -269,6 +280,7 @@ class CameraRegisterState extends State<CameraRegister> {
                           onPressed: () => _toggleRecording(cameraId, rtspUrl),
                         ),
                         const SizedBox(width: 8), // ボタン間のスペースを追加
+                        // 録画画像を再生する
                         IconButton(
                           iconSize: 36, // アイコンサイズを大きくする
                           icon:
@@ -278,12 +290,20 @@ class CameraRegisterState extends State<CameraRegister> {
                               _playRecordedVideos(cameraId, rtspUrl),
                         ),
                         const SizedBox(width: 8), // ボタン間のスペースを追加
-                        // 録画画像を使用して範囲を指定する
+                        // 保存済みの範囲を表示する
                         IconButton(
                           iconSize: 36, // アイコンサイズを大きくする
                           icon:
                               const Icon(Icons.select_all, color: Colors.green),
-                          tooltip: '録画画像範囲指定',
+                          tooltip: '保存済範囲',
+                          onPressed: () => _showSavedRange(cameraId, rtspUrl),
+                        ),
+                        const SizedBox(width: 8), // ボタン間のスペースを追加
+                        // 録画画像を使用して範囲を指定する
+                        IconButton(
+                          iconSize: 36, // アイコンサイズを大きくする
+                          icon: const Icon(Icons.update, color: Colors.green),
+                          tooltip: '範囲設定',
                           onPressed: () => _selectRange(cameraId, rtspUrl),
                         ),
                       ],

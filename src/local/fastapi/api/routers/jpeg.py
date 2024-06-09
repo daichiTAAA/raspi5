@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db import get_db
 from api.services.camera_service import CameraService
+from api.services import camera_service as cam_service
 from api.setup_logger import setup_logger
 import api.schemas as schemas
 
@@ -170,4 +171,21 @@ async def save_area(
         raise e
     except Exception as e:
         logger.error(f"Error saving area for camera {camera_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router_v1.get("/{camera_id}/area")
+async def get_area(
+    camera_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        got_area: schemas.GetArea = await cam_service.get_selected_area(db, camera_id)
+        logger.info(f"Got area for camera {camera_id}")
+        return got_area
+    except HTTPException as e:
+        logger.error(f"Error getting area for camera {camera_id}: {e}")
+        raise e
+    except Exception as e:
+        logger.error(f"Error getting area for camera {camera_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))

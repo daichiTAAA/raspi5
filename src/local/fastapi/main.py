@@ -17,7 +17,7 @@ async def lifespan(app: FastAPI):
     async with async_engine.begin() as conn:
         logger.info("Creating tables...")
         # 全てのテーブルを削除する。開発用。
-        await conn.run_sync(Base.metadata.drop_all)
+        # await conn.run_sync(Base.metadata.drop_all)
         # Baseを継承したモデルクラスに対応するテーブルを作成する。
         await conn.run_sync(Base.metadata.create_all)
         logger.info("Tables created.")

@@ -735,3 +735,35 @@ class CameraService:
         except Exception as e:
             logger.error(f"Error saving selected area for camera {camera_id}: {e}")
             raise HTTPException(status_code=500, detail=str(e))
+
+
+async def get_selected_area(
+    db: AsyncSession,
+    camera_id: str,
+):
+    logger.info("api.services.camera_service.get_selected_area")
+    try:
+        saved_camera: models.Camera = await cruds.camera.get_camera_by_camera_id(
+            db, camera_id
+        )
+        jpeg_path = saved_camera.area_selected_jpeg_path
+        img_io = BytesIO()
+        # 画像をバイト列に変換
+        with open(jpeg_path, "rb") as file:
+            image = Image.open(file)
+            image.save(img_io, "JPEG")
+            img_io.seek(0)
+        logger.info(f"Got selected area saved for camera {camera_id}, {saved_camera}")
+        got_area = schemas.GetArea(
+            area_selected_jpeg_data=base64.b64encode(img_io.read()).decode("utf-8"),
+            area_selected_jpeg_width=saved_camera.area_selected_jpeg_width,
+            area_selected_jpeg_height=saved_camera.area_selected_jpeg_height,
+            selected_area_start_x=saved_camera.selected_area_start_x,
+            selected_area_start_y=saved_camera.selected_area_start_y,
+            selected_area_end_x=saved_camera.selected_area_end_x,
+            selected_area_end_y=saved_camera.selected_area_end_y,
+        )
+        return got_area
+    except Exception as e:
+        logger.error(f"Error getting selected area for camera {camera_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

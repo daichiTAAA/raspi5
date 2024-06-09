@@ -21,6 +21,8 @@ class RangeSelectorState extends State<RangeSelector> {
   final ApiService _apiService = ApiService();
   final GlobalKey _imageKey = GlobalKey();
   bool _isSaved = false;
+  bool _isSaveFailed = false;
+  bool _saveSuccess = false;
 
   @override
   void initState() {
@@ -98,8 +100,8 @@ class RangeSelectorState extends State<RangeSelector> {
     }
   }
 
-  void _saveSelectedArea() {
-    if (_jpegImages.isNotEmpty) {
+  bool _saveSelectedArea() {
+    if (_start != null && _end != null && _jpegImages.isNotEmpty) {
       _apiService.saveSelectedArea(
         _jpegImages[0].cameraId,
         _jpegImages[0].image!,
@@ -110,6 +112,9 @@ class RangeSelectorState extends State<RangeSelector> {
         _jpegImages[0].originalEndX!,
         _jpegImages[0].originalEndY!,
       );
+      return true;
+    } else {
+      return false;
     }
   }
 
@@ -152,20 +157,33 @@ class RangeSelectorState extends State<RangeSelector> {
               IconButton(
                 iconSize: 36, // アイコンサイズを大きくする
                 icon: Icon(
-                  _isSaved ? Icons.check : Icons.save,
+                  _isSaved
+                      ? Icons.check
+                      : (_isSaveFailed ? Icons.error_outline : Icons.save),
                   color: Colors.green,
                 ),
                 tooltip: '指定範囲保存',
                 onPressed: () {
-                  _saveSelectedArea();
-                  setState(() {
-                    _isSaved = true;
-                  });
-                  Future.delayed(const Duration(milliseconds: 300), () {
+                  _saveSuccess = _saveSelectedArea();
+                  if (_saveSuccess) {
                     setState(() {
-                      _isSaved = false;
+                      _isSaved = true;
                     });
-                  });
+                    Future.delayed(const Duration(milliseconds: 300), () {
+                      setState(() {
+                        _isSaved = false;
+                      });
+                    });
+                  } else if (!_saveSuccess) {
+                    setState(() {
+                      _isSaveFailed = true;
+                    });
+                    Future.delayed(const Duration(milliseconds: 300), () {
+                      setState(() {
+                        _isSaveFailed = false;
+                      });
+                    });
+                  }
                 },
               )
             ],

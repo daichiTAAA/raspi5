@@ -1,12 +1,14 @@
 import 'dart:convert';
 import 'dart:typed_data';
-// import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:sync_http/sync_http.dart';
-// import '../models/hls_stream.dart';
+import 'package:logger/logger.dart';
+
+import '../models/save_area.dart';
 
 class ApiService {
   static const String baseUrl = 'http://localhost:8100';
+  var logger = Logger();
 
   // Future<void> addCamera(String cameraId, String rtspUrl) async {
   //   final response = await http.post(
@@ -256,19 +258,36 @@ class ApiService {
     // 画像をBase64エンコード
     String base64Image = base64Encode(image);
 
-    request.write(jsonEncode(<String, dynamic>{
-      'area_selected_jpeg_data': base64Image,
-      'area_selected_jpeg_width': originalWidth.toString(),
-      'area_selected_jpeg_height': originalHeight.toString(),
-      'selected_area_start_x': originalStartX.toString(),
-      'selected_area_start_y': originalStartY.toString(),
-      'selected_area_end_x': originalEndX.toString(),
-      'selected_area_end_y': originalEndY.toString(),
-    }));
+    // SaveAreaRequestオブジェクトを作成
+    SaveAreaRequest saveAreaRequest = SaveAreaRequest(
+      areaSelectedJpegData: base64Image,
+      areaSelectedJpegWidth: originalWidth.toString(),
+      areaSelectedJpegHeight: originalHeight.toString(),
+      selectedAreaStartX: originalStartX.toString(),
+      selectedAreaStartY: originalStartY.toString(),
+      selectedAreaEndX: originalEndX.toString(),
+      selectedAreaEndY: originalEndY.toString(),
+    );
+
+    // JSONに変換してリクエストに書き込む
+    request.write(jsonEncode(saveAreaRequest.toJson()));
     final response = request.close();
 
     if (response.statusCode != 200) {
       throw Exception('Failed to save selected area');
+    }
+  }
+
+  // 保存した範囲を取得する
+  Future<SaveAreaResponse> getSelectedArea(String cameraId) async {
+    final response =
+        await http.get(Uri.parse('$baseUrl/v1/jpegs/$cameraId/area'));
+
+    if (response.statusCode == 200) {
+      final jsonResponse = json.decode(response.body);
+      return SaveAreaResponse.fromJson(jsonResponse);
+    } else {
+      throw Exception('Failed to get range');
     }
   }
 }

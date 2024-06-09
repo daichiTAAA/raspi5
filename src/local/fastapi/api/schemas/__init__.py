@@ -1,1 +1,1 @@
-from .camera import CameraCreate, CameraUpdate, SaveArea
+from .camera import CameraCreate, CameraUpdate, SaveArea, GetArea
