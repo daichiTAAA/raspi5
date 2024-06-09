@@ -20,6 +20,7 @@ class RangeSelectorState extends State<RangeSelector> {
   var logger = Logger();
   final ApiService _apiService = ApiService();
   final GlobalKey _imageKey = GlobalKey();
+  bool _isSaved = false;
 
   @override
   void initState() {
@@ -133,139 +134,161 @@ class RangeSelectorState extends State<RangeSelector> {
         ],
       ),
       body: SingleChildScrollView(
-        // Wrap the Column with SingleChildScrollView
-        child: Column(
-          children: [
-            Wrap(
-              alignment: WrapAlignment.spaceEvenly,
-              children: [
-                IconButton(
-                  iconSize: 36, // アイコンサイズを大きくする
-                  icon: const Icon(
-                    Icons.image,
-                    color: Colors.green,
-                  ),
-                  tooltip: '最新録画画像取得',
-                  onPressed: () => _getImage(),
+          child: Column(
+        children: [
+          Wrap(
+            alignment: WrapAlignment.spaceEvenly,
+            children: [
+              IconButton(
+                iconSize: 36, // アイコンサイズを大きくする
+                icon: const Icon(
+                  Icons.photo_camera,
+                  color: Colors.green,
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                        ' Current Start: (${_jpegImages.isNotEmpty ? _jpegImages[0].currentStartX?.toStringAsFixed(2) : ""}, ${_jpegImages.isNotEmpty ? _jpegImages[0].currentStartY?.toStringAsFixed(2) : ""})'),
-                    Text(
-                        ' Current End: (${_jpegImages.isNotEmpty ? _jpegImages[0].currentEndX?.toStringAsFixed(2) : ""}, ${_jpegImages.isNotEmpty ? _jpegImages[0].currentEndY?.toStringAsFixed(2) : ""})'),
-                  ],
+                tooltip: '最新録画画像取得',
+                onPressed: () => _getImage(),
+              ),
+              const SizedBox(width: 40), // ボタン間のスペースを追加,
+              IconButton(
+                iconSize: 36, // アイコンサイズを大きくする
+                icon: Icon(
+                  _isSaved ? Icons.check : Icons.save,
+                  color: Colors.green,
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                        ' Original Start: (${_jpegImages.isNotEmpty ? _jpegImages[0].originalStartX?.toStringAsFixed(2) : ""}, ${_jpegImages.isNotEmpty ? _jpegImages[0].originalStartY?.toStringAsFixed(2) : ""})'),
-                    Text(
-                        ' Original End: (${_jpegImages.isNotEmpty ? _jpegImages[0].originalEndX?.toStringAsFixed(2) : ""}, ${_jpegImages.isNotEmpty ? _jpegImages[0].originalEndY?.toStringAsFixed(2) : ""})'),
-                  ],
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                        ' Current width: ${_jpegImages.isNotEmpty ? _jpegImages[0].currentWidth?.toStringAsFixed(2) : ""}'),
-                    Text(
-                        ' Current height: ${_jpegImages.isNotEmpty ? _jpegImages[0].currentHeight?.toStringAsFixed(2) : ""}'),
-                  ],
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                        ' Original width: ${_jpegImages.isNotEmpty ? _jpegImages[0].originalWidth?.toStringAsFixed(2) : ""}'),
-                    Text(
-                        ' Original height: ${_jpegImages.isNotEmpty ? _jpegImages[0].originalHeight?.toStringAsFixed(2) : ""}'),
-                  ],
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child:
-                      // 画像表示
-                      Card(
-                    child: Column(
-                      children: [
-                        const Text('最新録画画像'),
-                        _jpegImages.isNotEmpty && _jpegImages[0].image != null
-                            ? LayoutBuilder(
-                                builder: (context, constraints) {
-                                  final maxWidth =
-                                      MediaQuery.of(context).size.width * 0.98;
-                                  final image = GestureDetector(
-                                    onPanStart: (details) {
-                                      setState(() {
-                                        _start = details.localPosition;
-                                        _end = _start;
-                                      });
-                                    },
-                                    onPanUpdate: (details) {
-                                      setState(() {
-                                        _end = details.localPosition;
-                                      });
-                                    },
-                                    onPanEnd: (details) {
-                                      _saveSelectionCoordinates();
-                                      _saveSelectedArea();
-                                    },
-                                    child: CustomPaint(
-                                      painter: _RangePainter(_start, _end),
-                                      child: SizedBox(
-                                        width: maxWidth,
-                                        child: Stack(
-                                          children: [
-                                            Image.memory(
-                                              _jpegImages[0].image!,
-                                              key: _imageKey,
-                                              fit: BoxFit.contain,
-                                            ),
-                                            CustomPaint(
-                                              painter:
-                                                  _RangePainter(_start, _end),
-                                            ),
-                                          ],
-                                        ),
+                tooltip: '指定範囲保存',
+                onPressed: () {
+                  _saveSelectedArea();
+                  setState(() {
+                    _isSaved = true;
+                  });
+                  Future.delayed(const Duration(milliseconds: 300), () {
+                    setState(() {
+                      _isSaved = false;
+                    });
+                  });
+                },
+              )
+            ],
+          ),
+          Row(
+            children: [
+              Expanded(
+                child:
+                    // 画像表示
+                    Card(
+                  child: Column(
+                    children: [
+                      const Text('最新録画画像'),
+                      _jpegImages.isNotEmpty && _jpegImages[0].image != null
+                          ? LayoutBuilder(
+                              builder: (context, constraints) {
+                                final maxWidth =
+                                    MediaQuery.of(context).size.width * 0.98;
+                                final image = GestureDetector(
+                                  onPanStart: (details) {
+                                    setState(() {
+                                      _start = details.localPosition;
+                                      _end = _start;
+                                    });
+                                  },
+                                  onPanUpdate: (details) {
+                                    setState(() {
+                                      _end = details.localPosition;
+                                    });
+                                  },
+                                  onPanEnd: (details) {
+                                    _saveSelectionCoordinates();
+                                  },
+                                  child: CustomPaint(
+                                    painter: _RangePainter(_start, _end),
+                                    child: SizedBox(
+                                      width: maxWidth,
+                                      child: Stack(
+                                        children: [
+                                          Image.memory(
+                                            _jpegImages[0].image!,
+                                            key: _imageKey,
+                                            fit: BoxFit.contain,
+                                          ),
+                                          CustomPaint(
+                                            painter:
+                                                _RangePainter(_start, _end),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  );
+                                  ),
+                                );
 
-                                  WidgetsBinding.instance
-                                      .addPostFrameCallback((_) {
-                                    final renderBox = _imageKey.currentContext
-                                        ?.findRenderObject() as RenderBox?;
-                                    if (renderBox != null) {
-                                      if (mounted) {
-                                        setState(() {
-                                          _jpegImages[0].currentWidth =
-                                              renderBox.size.width;
-                                          _jpegImages[0].currentHeight =
-                                              renderBox.size.height;
-                                        });
-                                      }
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) {
+                                  final renderBox = _imageKey.currentContext
+                                      ?.findRenderObject() as RenderBox?;
+                                  if (renderBox != null) {
+                                    if (mounted) {
+                                      setState(() {
+                                        _jpegImages[0].currentWidth =
+                                            renderBox.size.width;
+                                        _jpegImages[0].currentHeight =
+                                            renderBox.size.height;
+                                      });
                                     }
-                                  });
+                                  }
+                                });
 
-                                  return image;
-                                },
-                              )
-                            : const Text('録画画像を取得してください。'),
-                      ],
-                    ),
+                                return image;
+                              },
+                            )
+                          : const Text('録画画像を取得してください。'),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ],
-        ),
-      ),
+              ),
+            ],
+          ),
+          Wrap(
+            alignment: WrapAlignment.spaceEvenly,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                      ' Current Start: (${_jpegImages.isNotEmpty ? _jpegImages[0].currentStartX?.toStringAsFixed(2) : ""}, ${_jpegImages.isNotEmpty ? _jpegImages[0].currentStartY?.toStringAsFixed(2) : ""})'),
+                  Text(
+                      ' Current End: (${_jpegImages.isNotEmpty ? _jpegImages[0].currentEndX?.toStringAsFixed(2) : ""}, ${_jpegImages.isNotEmpty ? _jpegImages[0].currentEndY?.toStringAsFixed(2) : ""})'),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                      ' Original Start: (${_jpegImages.isNotEmpty ? _jpegImages[0].originalStartX?.toStringAsFixed(2) : ""}, ${_jpegImages.isNotEmpty ? _jpegImages[0].originalStartY?.toStringAsFixed(2) : ""})'),
+                  Text(
+                      ' Original End: (${_jpegImages.isNotEmpty ? _jpegImages[0].originalEndX?.toStringAsFixed(2) : ""}, ${_jpegImages.isNotEmpty ? _jpegImages[0].originalEndY?.toStringAsFixed(2) : ""})'),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                      ' Current width: ${_jpegImages.isNotEmpty ? _jpegImages[0].currentWidth?.toStringAsFixed(2) : ""}'),
+                  Text(
+                      ' Current height: ${_jpegImages.isNotEmpty ? _jpegImages[0].currentHeight?.toStringAsFixed(2) : ""}'),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                      ' Original width: ${_jpegImages.isNotEmpty ? _jpegImages[0].originalWidth?.toStringAsFixed(2) : ""}'),
+                  Text(
+                      ' Original height: ${_jpegImages.isNotEmpty ? _jpegImages[0].originalHeight?.toStringAsFixed(2) : ""}'),
+                ],
+              ),
+            ],
+          ),
+        ],
+      )),
     );
   }
 }
