@@ -236,7 +236,8 @@ class ApiService {
         await http.get(Uri.parse('$baseUrl/v1/jpegs/$cameraId/latest_jpeg'));
 
     if (response.statusCode != 200) {
-      throw Exception('Failed to get latest recorded image');
+      logger.e('Failed to get latest recorded image');
+      return Uint8List(0);
     }
 
     return response.bodyBytes;

@@ -24,6 +24,9 @@ class RangeSettingScreenState extends State<RangeSettingScreen> {
   bool _isSaved = false;
   bool _isSaveFailed = false;
   bool _saveSuccess = false;
+  bool _canGetImage = false;
+  bool _cannotGetImage = false;
+  bool _getSuccess = false;
 
   double imageWidth = 10;
   double imageHeight = 10;
@@ -86,6 +89,10 @@ class RangeSettingScreenState extends State<RangeSettingScreen> {
     final SaveAreaResponse response =
         await _apiService.getSelectedArea(cameraId);
 
+    if (response.areaSelectedJpegData == '') {
+      return;
+    }
+
     // 画像をuint8Listに変換
     Uint8List jpegData = base64Decode(response.areaSelectedJpegData);
 
@@ -119,6 +126,13 @@ class RangeSettingScreenState extends State<RangeSettingScreen> {
   }
 
   void _getCurrentSelectionCoordinates() {
+    if (_jpegImages.isEmpty) {
+      return;
+    }
+    if (_jpegImages[0].originalWidth == null ||
+        _jpegImages[0].originalHeight == null) {
+      return;
+    }
     double originalWidth = _jpegImages[0].originalWidth!;
     double originalHeight = _jpegImages[0].originalHeight!;
     double currentWidth = _jpegImages[0].currentWidth!;
@@ -143,36 +157,13 @@ class RangeSettingScreenState extends State<RangeSettingScreen> {
     });
   }
 
-  // void _getSavedSelectedArea() async {
-  //   String cameraId = _jpegImages[0].cameraId;
-  //   final SaveAreaResponse response =
-  //       await _apiService.getSelectedArea(cameraId);
-
-  //   if (response.areaSelectedJpegData == '') {
-  //     return;
-  //   }
-
-  //   Uint8List bytes = base64Decode(response.areaSelectedJpegData);
-  //   _jpegImages[0].setImage(bytes);
-
-  //   final decodedImage = await decodeImageFromList(bytes);
-  //   setState(() {
-  //     _jpegImages[0].originalWidth = decodedImage.width.toDouble();
-  //     _jpegImages[0].originalHeight = decodedImage.height.toDouble();
-  //     _jpegImages[0].setOriginalSelectionCoordinates(
-  //       startX: double.parse(response.selectedAreaStartX),
-  //       startY: double.parse(response.selectedAreaStartY),
-  //       endX: double.parse(response.selectedAreaEndX),
-  //       endY: double.parse(response.selectedAreaEndY),
-  //     );
-  //   });
-
-  //   _updateCurrentSelectionCoordinates();
-  // }
-
-  void _getImage() async {
+  Future<bool> _getImage() async {
     String cameraId = _jpegImages[0].cameraId;
     Uint8List jpegData = await _apiService.getLatestRecordedImage(cameraId);
+    if (jpegData.isEmpty) {
+      return false;
+    }
+
     _jpegImages[0].setImage(jpegData);
 
     final decodedImage = await decodeImageFromList(jpegData);
@@ -180,9 +171,17 @@ class RangeSettingScreenState extends State<RangeSettingScreen> {
       _jpegImages[0].originalWidth = decodedImage.width.toDouble();
       _jpegImages[0].originalHeight = decodedImage.height.toDouble();
     });
+    return true;
   }
 
   void _updateCurrentSelectionCoordinates() {
+    if (_jpegImages.isEmpty) {
+      return;
+    }
+    if (_jpegImages[0].originalWidth == null ||
+        _jpegImages[0].originalHeight == null) {
+      return;
+    }
     double originalWidth = _jpegImages[0].originalWidth!;
     double originalHeight = _jpegImages[0].originalHeight!;
     double currentWidth = MediaQuery.of(context).size.width * 0.98;
@@ -286,12 +285,37 @@ class RangeSettingScreenState extends State<RangeSettingScreen> {
             children: [
               IconButton(
                 iconSize: 36,
-                icon: const Icon(
-                  Icons.photo_camera,
+                icon: Icon(
+                  _canGetImage
+                      ? Icons.check
+                      : (_cannotGetImage
+                          ? Icons.error_outline
+                          : Icons.photo_camera),
                   color: Colors.green,
                 ),
                 tooltip: '最新録画画像取得',
-                onPressed: () => _getImage(),
+                onPressed: () async {
+                  _getSuccess = await _getImage();
+                  if (_getSuccess) {
+                    setState(() {
+                      _canGetImage = true;
+                    });
+                    Future.delayed(const Duration(milliseconds: 300), () {
+                      setState(() {
+                        _canGetImage = false;
+                      });
+                    });
+                  } else if (!_getSuccess) {
+                    setState(() {
+                      _cannotGetImage = true;
+                    });
+                    Future.delayed(const Duration(milliseconds: 300), () {
+                      setState(() {
+                        _cannotGetImage = false;
+                      });
+                    });
+                  }
+                },
               ),
               const SizedBox(width: 40),
               IconButton(
@@ -394,7 +418,7 @@ class RangeSettingScreenState extends State<RangeSettingScreen> {
                         });
                         return image;
                       })
-                    : const Text('No image available.'),
+                    : const Text('画像を取得してください。'),
               ]),
             ))
           ]),
