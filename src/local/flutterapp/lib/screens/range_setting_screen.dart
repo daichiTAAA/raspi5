@@ -25,15 +25,20 @@ class RangeSettingScreenState extends State<RangeSettingScreen> {
   bool _isSaveFailed = false;
   bool _saveSuccess = false;
 
+  double imageWidth = 10;
+  double imageHeight = 10;
+
+  double aspectRatio = 1.0;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeFromArguments();
+      _initializeFromArguments().then((_) => _updateImageSize());
     });
   }
 
-  void _initializeFromArguments() {
+  Future<void> _initializeFromArguments() async {
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is Map<String, String>) {
       setState(() {
@@ -45,32 +50,56 @@ class RangeSettingScreenState extends State<RangeSettingScreen> {
           } else {
             _jpegImages[0] = jpegImage;
           }
-          _getSavedSelectedArea();
         } else {
           logger.e('Missing cameraId or rtspUrl in arguments: $args');
         }
       });
+      await _getOriginalSelectionCoordinates();
+      _getCurrentImageSize();
+      _getCurrentSelectionCoordinates();
+      _updateCurrentSelectionCoordinates();
     } else {
       logger.e('Invalid arguments: $args');
     }
   }
 
-  void _getSavedSelectedArea() async {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updateImageSize();
+  }
+
+  void _updateImageSize() {
+    if (_jpegImages.isNotEmpty) {
+      setState(() {
+        imageWidth = MediaQuery.of(context).size.width * 0.98;
+        imageHeight = imageWidth / aspectRatio;
+      });
+      _getCurrentImageSize();
+      _getCurrentSelectionCoordinates();
+      _updateCurrentSelectionCoordinates();
+    }
+  }
+
+  Future<void> _getOriginalSelectionCoordinates() async {
     String cameraId = _jpegImages[0].cameraId;
     final SaveAreaResponse response =
         await _apiService.getSelectedArea(cameraId);
 
-    if (response.areaSelectedJpegData == '') {
-      return;
-    }
+    // 画像をuint8Listに変換
+    Uint8List jpegData = base64Decode(response.areaSelectedJpegData);
 
-    Uint8List bytes = base64Decode(response.areaSelectedJpegData);
-    _jpegImages[0].setImage(bytes);
-
-    final decodedImage = await decodeImageFromList(bytes);
     setState(() {
-      _jpegImages[0].originalWidth = decodedImage.width.toDouble();
-      _jpegImages[0].originalHeight = decodedImage.height.toDouble();
+      _jpegImages[0].setImage(jpegData);
+      // 画像のサイズを格納
+      _jpegImages[0].setOriginalImageSize(
+        width: double.parse(response.areaSelectedJpegWidth),
+        height: double.parse(response.areaSelectedJpegHeight),
+      );
+      // aspectRatioを計算
+      aspectRatio = double.parse(response.areaSelectedJpegWidth) /
+          double.parse(response.areaSelectedJpegHeight);
+      // 範囲を格納
       _jpegImages[0].setOriginalSelectionCoordinates(
         startX: double.parse(response.selectedAreaStartX),
         startY: double.parse(response.selectedAreaStartY),
@@ -78,9 +107,68 @@ class RangeSettingScreenState extends State<RangeSettingScreen> {
         endY: double.parse(response.selectedAreaEndY),
       );
     });
-
-    _updateCurrentSelectionCoordinates();
   }
+
+  void _getCurrentImageSize() {
+    double width = imageWidth;
+    double height = imageHeight;
+
+    setState(() {
+      _jpegImages[0].setCurrentImageSize(width: width, height: height);
+    });
+  }
+
+  void _getCurrentSelectionCoordinates() {
+    double originalWidth = _jpegImages[0].originalWidth!;
+    double originalHeight = _jpegImages[0].originalHeight!;
+    double currentWidth = _jpegImages[0].currentWidth!;
+    double currentHeight = _jpegImages[0].currentHeight!;
+    double originalStartX = _jpegImages[0].originalStartX!;
+    double originalStartY = _jpegImages[0].originalStartY!;
+    double originalEndX = _jpegImages[0].originalEndX!;
+    double originalEndY = _jpegImages[0].originalEndY!;
+
+    double currentStartX = originalStartX * (currentWidth / originalWidth);
+    double currentStartY = originalStartY * (currentHeight / originalHeight);
+    double currentEndX = originalEndX * (currentWidth / originalWidth);
+    double currentEndY = originalEndY * (currentHeight / originalHeight);
+
+    setState(() {
+      _jpegImages[0].setCurrentSelectionCoordinates(
+        startX: currentStartX,
+        startY: currentStartY,
+        endX: currentEndX,
+        endY: currentEndY,
+      );
+    });
+  }
+
+  // void _getSavedSelectedArea() async {
+  //   String cameraId = _jpegImages[0].cameraId;
+  //   final SaveAreaResponse response =
+  //       await _apiService.getSelectedArea(cameraId);
+
+  //   if (response.areaSelectedJpegData == '') {
+  //     return;
+  //   }
+
+  //   Uint8List bytes = base64Decode(response.areaSelectedJpegData);
+  //   _jpegImages[0].setImage(bytes);
+
+  //   final decodedImage = await decodeImageFromList(bytes);
+  //   setState(() {
+  //     _jpegImages[0].originalWidth = decodedImage.width.toDouble();
+  //     _jpegImages[0].originalHeight = decodedImage.height.toDouble();
+  //     _jpegImages[0].setOriginalSelectionCoordinates(
+  //       startX: double.parse(response.selectedAreaStartX),
+  //       startY: double.parse(response.selectedAreaStartY),
+  //       endX: double.parse(response.selectedAreaEndX),
+  //       endY: double.parse(response.selectedAreaEndY),
+  //     );
+  //   });
+
+  //   _updateCurrentSelectionCoordinates();
+  // }
 
   void _getImage() async {
     String cameraId = _jpegImages[0].cameraId;
@@ -240,79 +328,76 @@ class RangeSettingScreenState extends State<RangeSettingScreen> {
               )
             ],
           ),
-          Row(
-            children: [
-              Expanded(
-                child: Card(
-                  child: Column(
-                    children: [
-                      _jpegImages.isNotEmpty && _jpegImages[0].image != null
-                          ? LayoutBuilder(
-                              builder: (context, constraints) {
-                                final maxWidth =
-                                    MediaQuery.of(context).size.width * 0.98;
-                                final image = GestureDetector(
-                                  onPanStart: (details) {
-                                    setState(() {
-                                      _start = details.localPosition;
-                                      _end = _start;
-                                    });
-                                  },
-                                  onPanUpdate: (details) {
-                                    setState(() {
-                                      _end = details.localPosition;
-                                    });
-                                  },
-                                  onPanEnd: (details) {
-                                    _saveSelectionCoordinates();
-                                  },
-                                  child: CustomPaint(
-                                    painter: _RangePainter(_start, _end),
-                                    child: SizedBox(
-                                      width: maxWidth,
-                                      child: Stack(
-                                        children: [
-                                          Image.memory(
-                                            _jpegImages[0].image!,
-                                            key: _imageKey,
-                                            fit: BoxFit.contain,
+          Row(children: [
+            Expanded(
+                child:
+                    // 画像表示
+                    Card(
+              child: Column(children: [
+                _jpegImages.isNotEmpty && _jpegImages[0].image != null
+                    ? LayoutBuilder(builder: (context, constraints) {
+                        final image = GestureDetector(
+                            onPanStart: (details) {
+                              setState(() {
+                                _start = details.localPosition;
+                                _end = _start;
+                              });
+                            },
+                            onPanUpdate: (details) {
+                              setState(() {
+                                _end = details.localPosition;
+                              });
+                            },
+                            onPanEnd: (details) {
+                              _saveSelectionCoordinates();
+                            },
+                            child: CustomPaint(
+                                painter: _RangePainter(
+                                    _start!, _end!, imageWidth, imageHeight),
+                                child: SizedBox(
+                                    width: imageWidth,
+                                    child: Stack(
+                                      children: [
+                                        Image.memory(
+                                          _jpegImages[0].image!,
+                                          key: _imageKey,
+                                          width: imageWidth,
+                                          height: imageHeight,
+                                        ),
+                                        CustomPaint(
+                                          painter: _RangePainter(
+                                            _start!,
+                                            _end!,
+                                            imageWidth,
+                                            imageHeight,
                                           ),
-                                          CustomPaint(
-                                            painter:
-                                                _RangePainter(_start, _end),
+                                          child: SizedBox(
+                                            width: imageWidth,
+                                            height: imageHeight,
                                           ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                );
-
-                                WidgetsBinding.instance
-                                    .addPostFrameCallback((_) {
-                                  final renderBox = _imageKey.currentContext
-                                      ?.findRenderObject() as RenderBox?;
-                                  if (renderBox != null) {
-                                    if (mounted) {
-                                      setState(() {
-                                        _jpegImages[0].currentWidth =
-                                            renderBox.size.width;
-                                        _jpegImages[0].currentHeight =
-                                            renderBox.size.height;
-                                      });
-                                    }
-                                  }
-                                });
-
-                                return image;
-                              },
-                            )
-                          : const Text('録画画像を取得してください。'),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+                                        ),
+                                      ],
+                                    ))));
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          final renderBox = _imageKey.currentContext
+                              ?.findRenderObject() as RenderBox?;
+                          if (renderBox != null) {
+                            if (mounted) {
+                              setState(() {
+                                _jpegImages[0].currentWidth =
+                                    renderBox.size.width;
+                                _jpegImages[0].currentHeight =
+                                    renderBox.size.height;
+                              });
+                            }
+                          }
+                        });
+                        return image;
+                      })
+                    : const Text('No image available.'),
+              ]),
+            ))
+          ]),
           Wrap(
             alignment: WrapAlignment.spaceEvenly,
             children: [
@@ -361,21 +446,27 @@ class RangeSettingScreenState extends State<RangeSettingScreen> {
 }
 
 class _RangePainter extends CustomPainter {
-  final Offset? start;
-  final Offset? end;
+  final Offset start;
+  final Offset end;
+  final double imageWidth;
+  final double imageHeight;
 
-  _RangePainter(this.start, this.end);
+  _RangePainter(this.start, this.end, this.imageWidth, this.imageHeight);
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (start != null && end != null) {
-      final paint = Paint()
-        ..color = Colors.blue.withOpacity(0.5)
-        ..style = PaintingStyle.fill;
+    final paint = Paint()
+      ..color = Colors.blue.withOpacity(0.5)
+      ..style = PaintingStyle.fill;
 
-      final rect = Rect.fromPoints(start!, end!);
-      canvas.drawRect(rect, paint);
-    }
+    // 画像の左上を原点として座標を計算
+    final rect = Rect.fromPoints(
+      Offset(start.dx * size.width / imageWidth,
+          start.dy * size.height / imageHeight),
+      Offset(
+          end.dx * size.width / imageWidth, end.dy * size.height / imageHeight),
+    );
+    canvas.drawRect(rect, paint);
   }
 
   @override
