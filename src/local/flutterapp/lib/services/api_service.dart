@@ -286,8 +286,18 @@ class ApiService {
     if (response.statusCode == 200) {
       final jsonResponse = json.decode(response.body);
       return SaveAreaResponse.fromJson(jsonResponse);
+    } else if (response.statusCode == 404) {
+      return SaveAreaResponse(
+        areaSelectedJpegData: '',
+        areaSelectedJpegWidth: '',
+        areaSelectedJpegHeight: '',
+        selectedAreaStartX: '',
+        selectedAreaStartY: '',
+        selectedAreaEndX: '',
+        selectedAreaEndY: '',
+      );
     } else {
-      throw Exception('Failed to get range');
+      throw Exception('Failed to get selected area');
     }
   }
 }

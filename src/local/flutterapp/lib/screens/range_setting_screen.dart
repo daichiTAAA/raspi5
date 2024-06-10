@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
@@ -45,7 +45,7 @@ class RangeSettingScreenState extends State<RangeSettingScreen> {
           } else {
             _jpegImages[0] = jpegImage;
           }
-          _getImage();
+          _getSavedSelectedArea();
         } else {
           logger.e('Missing cameraId or rtspUrl in arguments: $args');
         }
@@ -53,6 +53,33 @@ class RangeSettingScreenState extends State<RangeSettingScreen> {
     } else {
       logger.e('Invalid arguments: $args');
     }
+  }
+
+  void _getSavedSelectedArea() async {
+    String cameraId = _jpegImages[0].cameraId;
+    final SaveAreaResponse response =
+        await _apiService.getSelectedArea(cameraId);
+
+    if (response.areaSelectedJpegData == '') {
+      return;
+    }
+
+    Uint8List bytes = base64Decode(response.areaSelectedJpegData);
+    _jpegImages[0].setImage(bytes);
+
+    final decodedImage = await decodeImageFromList(bytes);
+    setState(() {
+      _jpegImages[0].originalWidth = decodedImage.width.toDouble();
+      _jpegImages[0].originalHeight = decodedImage.height.toDouble();
+      _jpegImages[0].setOriginalSelectionCoordinates(
+        startX: double.parse(response.selectedAreaStartX),
+        startY: double.parse(response.selectedAreaStartY),
+        endX: double.parse(response.selectedAreaEndX),
+        endY: double.parse(response.selectedAreaEndY),
+      );
+    });
+
+    _updateCurrentSelectionCoordinates();
   }
 
   void _getImage() async {
@@ -65,25 +92,6 @@ class RangeSettingScreenState extends State<RangeSettingScreen> {
       _jpegImages[0].originalWidth = decodedImage.width.toDouble();
       _jpegImages[0].originalHeight = decodedImage.height.toDouble();
     });
-
-    _getSavedSelectionCoordinates();
-  }
-
-  void _getSavedSelectionCoordinates() async {
-    String cameraId = _jpegImages[0].cameraId;
-    final SaveAreaResponse response =
-        await _apiService.getSelectedArea(cameraId);
-
-    setState(() {
-      _jpegImages[0].setOriginalSelectionCoordinates(
-        startX: double.parse(response.selectedAreaStartX),
-        startY: double.parse(response.selectedAreaStartY),
-        endX: double.parse(response.selectedAreaEndX),
-        endY: double.parse(response.selectedAreaEndY),
-      );
-    });
-
-    _updateCurrentSelectionCoordinates();
   }
 
   void _updateCurrentSelectionCoordinates() {

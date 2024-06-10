@@ -184,6 +184,9 @@ async def get_area(
         logger.info(f"Got area for camera {camera_id}")
         return got_area
     except HTTPException as e:
+        if e.status_code == 404 and e.detail == "No selected area found":
+            logger.warning(f"Warning error getting area for camera {camera_id}: {e}")
+            raise HTTPException(status_code=404, detail="No selected area found")
         logger.error(f"Error getting area for camera {camera_id}: {e}")
         raise e
     except Exception as e:

@@ -746,6 +746,9 @@ async def get_selected_area(
         saved_camera: models.Camera = await cruds.camera.get_camera_by_camera_id(
             db, camera_id
         )
+        if saved_camera.area_selected_jpeg_path is None:
+            logger.error(f"No selected area found for camera {camera_id}")
+            raise HTTPException(status_code=404, detail="No selected area found")
         jpeg_path = saved_camera.area_selected_jpeg_path
         img_io = BytesIO()
         # 画像をバイト列に変換
@@ -764,6 +767,10 @@ async def get_selected_area(
             selected_area_end_y=saved_camera.selected_area_end_y,
         )
         return got_area
-    except Exception as e:
-        logger.error(f"Error getting selected area for camera {camera_id}: {e}")
+    except HTTPException as e:
+        if e.status_code == 404:
+            logger.warning(
+                f"Warnig error getting selected area {camera_id} but ignore it: {e}"
+            )
+            raise HTTPException(status_code=404, detail="No selected area found")
         raise HTTPException(status_code=500, detail=str(e))
