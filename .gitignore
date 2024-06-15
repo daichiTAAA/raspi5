@@ -729,3 +729,6 @@ app.*.symbols
 
 **/api/**/static/*
 !**/api/**/static/.gitkeep
+
+# YOLOX
+!**/YOLOX/assets/dog.jpg
