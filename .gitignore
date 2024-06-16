@@ -732,3 +732,4 @@ app.*.symbols
 
 # YOLOX
 !**/YOLOX/assets/dog.jpg
+**/YOLOX_outputs/

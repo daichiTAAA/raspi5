@@ -253,3 +253,54 @@ It is hoped that every AI practitioner in the world will stick to the concept of
 没有孙剑博士的指导，YOLOX也不会问世并开源给社区使用。
 孙剑博士的离去是CV领域的一大损失，我们在此特别添加了这个部分来表达对我们的“船长”孙老师的纪念和哀思。
 希望世界上的每个AI从业者秉持着“持续创新拓展认知边界，非凡科技成就产品价值”的观念，一路向前。
+
+<br>
+<br>
+
+## 環境構築
+```bash
+cd ~/raspi5/src/local/fastapi/api/YOLOX
+python setup.py develop
+```
+## デモ実行
+```bash
+cd ~/raspi5/src/local/fastapi/api/YOLOX
+python tools/demo.py image -n yolox-s -c models/yolox_s.pth --path assets/dog.jpg --conf 0.25 --nms 0.45 --tsize 640 --save_result --device cpu
+```
+## デモの停止方法
+Macで添付のプログラム（Pythonスクリプト）の実行を停止するには、以下の方法があります。
+
+### ターミナルからプロセスを強制終了する
+ターミナルから直接プロセスを強制終了することもできます。
+
+1. **プロセスID（PID）を確認する**:
+   - ターミナルで以下のコマンドを実行して、実行中のPythonプロセスのPIDを確認します。
+     ```bash
+     ps aux | grep python
+     ```
+   - 実行中のPythonスクリプトのPIDをメモします。
+
+2. **プロセスを強制終了する**:
+   - 以下のコマンドを実行して、特定のPIDを持つプロセスを強制終了します。
+     ```bash
+     kill -9 <PID>
+     ```
+   - `<PID>`の部分に、先ほど確認したプロセスIDを入力します。
+
+これらの方法を使用することで、Macで実行中のPythonプログラムを停止することができます。
+
+## カメラからの取得画像での推論
+```bash
+cd ~/raspi5/src/local/fastapi
+python api/YOLOX/tools/demo.py image -n yolox-s -c api/YOLOX/models/yolox_s.pth --path data/area_selected_jpeg/cam1/area_selected_cam1.jpg --conf 0.25 --nms 0.45 --tsize 640 --save_result --device cpu
+```
+
+## onnxでの推論
+```bash
+cd ~/raspi5/src/local/fastapi
+python api/YOLOX/demo/ONNXRuntime/onnx_inference.py -m api/YOLOX/models/yolox_s.onnx -i data/area_selected_jpeg/cam1/area_selected_cam1.jpg -o data/area_selected_jpeg/cam1/inference_result/area_selected_cam1.jpg -s 0.3 --input_shape 640,640
+```
+* -m: your converted onnx model
+* -i: input_image
+* -s: score threshold for visualization.
+* --input_shape: should be consistent with the shape you used for onnx convertion.
